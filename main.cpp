@@ -1,10 +1,12 @@
 #include <iostream>
 //#include "data/Model.h"
 #include "data/users.h"
+#include "log/Log.h"
 
 using namespace std;
 
 int main() {
+    Util::SetWriteLog(true);
     cout << "Hello, World!" << endl;
     sqlite3* db = nullptr;
     int r = sqlite3_open("test.sqlite", &db);
