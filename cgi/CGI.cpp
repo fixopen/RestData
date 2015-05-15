@@ -5,6 +5,15 @@
 #include "CGI.h"
 #include <cstdlib>
 
+std::map<std::string, std::string> Request::GetCookie() {
+    std::map<std::string, std::string> result;
+    return result;
+}
+
+void Request::Response::SetCookie(std::map<std::string, std::string> const& cookie) {
+    //
+}
+
 void CGI::GetEnv() {
     fServerSoftware 	= std::getenv("SERVER_SOFTWARE");
     fServerName 		= std::getenv("SERVER_NAME");

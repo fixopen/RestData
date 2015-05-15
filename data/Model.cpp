@@ -67,7 +67,7 @@ void MetaInfo::DropTable() {
     }
 }
 
-std::vector<MetaInfo::data> MetaInfo::Select(std::vector<MetaInfo::condition> const& filter, page_info const& pageInfo) {
+std::vector<MetaInfo::data> MetaInfo::Select(std::vector<MetaInfo::condition> const& filter, std::vector<MetaInfo::order_by_item> const& orderBy, page_info const& pageInfo) {
     std::string columnNames;
     for (auto& column : columns_) {
         columnNames += Quote(column.first) + delimeter;
@@ -77,12 +77,21 @@ std::vector<MetaInfo::data> MetaInfo::Select(std::vector<MetaInfo::condition> co
     for (auto& condition : filter) {
         whereClause += Quote(condition.first) + " " + condition.second.first + " " + QuoteForDatabase(condition.second.second, columns_[condition.first]) + conditionSep;
     }
-    whereClause = " WHERE " + whereClause.substr(0, whereClause.length() - conditionSep.length());
+    if (whereClause != "") {
+        whereClause = " WHERE " + whereClause.substr(0, whereClause.length() - conditionSep.length());
+    }
+    std::string orderByClause;
+    for (auto& orderItem : orderBy) {
+        orderByClause += Quote(orderItem.first) + " " + (orderItem.second == MetaInfo::Asc ? "ASC" : "DESC") + ", ";
+    }
+    if (orderByClause != "") {
+        orderByClause = " ORDER BY " + orderByClause.substr(0, orderByClause.length() - delimeter.length());
+    }
     std::string pageClause;
     if (pageInfo.first != -1 && pageInfo.second != -1) {
-        pageClause = " LIMIT " + FromIntU(pageInfo.second) + " OFFSET " + FromIntU(pageInfo.first);
+        pageClause = " LIMIT " + FromIntU((int const)pageInfo.second) + " OFFSET " + FromIntU((int const)pageInfo.first);
     }
-    std::string command = "SELECT " + columnNames + " FROM " + Quote(tableName_) + whereClause + pageClause; //construct from filter and pageInfo
+    std::string command = "SELECT " + columnNames + " FROM " + Quote(tableName_) + whereClause + orderByClause + pageClause; //construct from filter and pageInfo
     //std::cout << command << std::endl;
     char* error = nullptr;
     arguments.clear();
@@ -118,7 +127,7 @@ bool MetaInfo::Insert(data const& value) {
 
 bool MetaInfo::Delete(unsigned long long id) {
     bool result = true;
-    std::string command = "DELETE FROM " + Quote(tableName_) + " WHERE " + Quote("id") + " = " + FromIntU(id);
+    std::string command = "DELETE FROM " + Quote(tableName_) + " WHERE " + Quote("id") + " = " + FromIntU((int const)id);
     char* error = nullptr;
     sqlite3_exec(database_, command.c_str(), rowProcess, &arguments, &error);
     if (error) {
@@ -136,7 +145,7 @@ bool MetaInfo::Update(unsigned long long id, data const& value) {
         columnsSet += Quote(field.first) + " = " + QuoteForDatabase(field.second, columns_[field.first]) + delimeter;
     }
     columnsSet = columnsSet.substr(0, columnsSet.length() - delimeter.length());
-    std::string command = "UPDATE " + Quote(tableName_) + " SET " + columnsSet + " WHERE " + Quote("id") + " = " + FromIntU(id);
+    std::string command = "UPDATE " + Quote(tableName_) + " SET " + columnsSet + " WHERE " + Quote("id") + " = " + FromIntU((int const)id);
     //std::cout << command << std::endl;
     char* error = nullptr;
     sqlite3_exec(database_, command.c_str(), rowProcess, &arguments, &error);

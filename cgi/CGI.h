@@ -24,6 +24,7 @@ public:
         void SetCookie(std::map<std::string, std::string> const& cookie);
         std::string Body;
     };
+    Response Response;
 };
 
 class CGI {

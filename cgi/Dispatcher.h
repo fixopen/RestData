@@ -5,20 +5,41 @@
 #ifndef RESTDATA_DISPATCHER_H
 #define RESTDATA_DISPATCHER_H
 
+#include <vector>
+#include <map>
+#include <string>
+#include <regex>
+//#include <unordered_map>
 #include "CGI.h"
+#include "../data/Model.h"
 
 class Executor {
 public:
+    struct Parameters {
+        std::vector<MetaInfo::condition> filter;
+        unsigned long long offset;
+        unsigned long long count;
+        std::vector<MetaInfo::order_by_item> orderBy;
+    };
+    struct MIMEType {
+        std::string fullType;
+        std::string type;
+        std::string subType;
+        std::map<std::string, std::string> parameters;
+    };
     virtual void Execute(Request& request) = 0;
+protected:
+    Parameters parseParameters_(std::map<std::string, std::string> const& parameters) const;
+    MIMEType parseMIMEType_(std::string const &v);
 };
 
 class Dispatcher {
 public:
-    static void RegisterExecutor(std::string const& uriPatterns, Executor const& executor);
+    static void RegisterExecutor(std::string const& uriPatterns, std::shared_ptr<Executor> const& executor);
     static void Execute(Request& request);
 
 private:
-    static std::map<std::string, Executor> handles_;
+    static std::vector<std::pair<std::regex, std::shared_ptr<Executor>>> handles_;
 };
 
 #endif //RESTDATA_DISPATCHER_H

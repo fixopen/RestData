@@ -16,6 +16,11 @@ template<typename T> class Model;
 class MetaInfo {
     template<typename T> friend class Model;
 public:
+    enum Direction {
+        Asc,
+        Desc
+    };
+    typedef std::pair<std::string, Direction> order_by_item;
     typedef std::pair<std::string, std::string> condition_value;
     typedef std::pair<std::string, condition_value> condition;
     typedef std::map<std::string, std::string> data;
@@ -39,7 +44,7 @@ public:
     }
     void CreateTable();
     void DropTable();
-    std::vector<data> Select(std::vector<condition> const& filter, page_info const& pageInfo);
+    std::vector<data> Select(std::vector<condition> const& filter, std::vector<order_by_item> const& orderBy, page_info const& pageInfo);
     bool Insert(data const& value);
     bool Delete(unsigned long long id);
     bool Update(unsigned long long id, data const& value);
@@ -67,9 +72,9 @@ public:
     static void DropTable() {
         model_.DropTable();
     }
-    static std::vector<T> Select(std::vector<MetaInfo::condition> const& filter, MetaInfo::page_info const& pageInfo) {
+    static std::vector<T> Select(std::vector<MetaInfo::condition> const& filter, std::vector<MetaInfo::order_by_item> const& orderBy, MetaInfo::page_info const& pageInfo) {
         std::vector<T> result;
-        auto data = model_.Select(filter, pageInfo);
+        auto data = model_.Select(filter, orderBy, pageInfo);
         for (auto& datum : data) {
             auto item = T::ParseMap(data);
             //@@item.id_ = atoi(data["id"]);
