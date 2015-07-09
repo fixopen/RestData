@@ -26,6 +26,14 @@ public:
     typedef std::map<std::string, std::string> data;
     typedef std::pair<unsigned long long, unsigned long long> page_info;
 public:
+    std::string GetTypeByName(std::string const& name) const {
+        std::string result;
+        auto i = columns_.find(name);
+        if (i != columns_.end()) {
+            result = i->first;
+        }
+        return result;
+    }
     std::string Quote(std::string const &name) {
         return "\"" + name + "\"";
     }
@@ -97,7 +105,7 @@ public:
     }
 
 protected:
-    virtual MetaInfo::data toMap_() = 0;
+    virtual MetaInfo::data toMap_() const = 0;
     unsigned long long int id_ = 0;
     static MetaInfo model_;
 };

@@ -5,7 +5,6 @@
 #ifndef RESTDATA_USERS_H
 #define RESTDATA_USERS_H
 
-
 #include "Model.h"
 #include "../cgi/Dispatcher.h"
 
@@ -16,9 +15,9 @@ public:
     }
     static users ParseMap(MetaInfo::data const& v);
     virtual void Execute(Request& request) override;
-
+    static std::string test(users const& user);
 protected:
-    virtual MetaInfo::data toMap_() override;
+    virtual MetaInfo::data toMap_() const override;
 };
 
 

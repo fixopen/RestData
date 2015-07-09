@@ -2,6 +2,7 @@
 // Created by up duan on 22/4/15.
 //
 
+#include <sstream>
 #include <stdlib.h>
 #include "users.h"
 #include "../text/StringOp.h"
@@ -10,11 +11,12 @@ users users::ParseMap(MetaInfo::data const& v) {
     return users{};
 }
 
-MetaInfo::data users::toMap_() {
+MetaInfo::data users::toMap_() const {
     return MetaInfo::data{};
 }
 
 void users::Execute(Request& request) {
+    users user;
     unsigned long long id = 0;
     auto paths = Util::Text::StringOp::Split(request.Uri, "/");
     if (request.Method == "GET" || request.Method == "DELETE") {
@@ -23,7 +25,6 @@ void users::Execute(Request& request) {
             parseMIMEType_(accept).fullType == "application/json") {
             //normal
             auto params = parseParameters_(request.Parameters);
-            users user;
             //GET select
             auto users = user.model_.Select(params.filter, params.orderBy, MetaInfo::page_info{params.offset, params.count});
             request.Response.Body = user.model_.ToJson(users);
@@ -40,7 +41,6 @@ void users::Execute(Request& request) {
         if (request.Headers.find("Content-Type") != request.Headers.end() &&
             parseMIMEType_(contentType).fullType == "application/json") {
             //normal
-            users user;
             user = users::ParseMap(user.model_.ParseJson(request.Body));
             //POST insert
             user.Insert();
@@ -56,4 +56,24 @@ void users::Execute(Request& request) {
             //PATCH update
         }
     }
+}
+
+std::string users::test(users const& user) {
+    std::stringstream ss;
+    auto data = user.toMap_();
+    ss << '{';
+    for (auto datum : data) {
+        ss << '"' << datum.first << '"' << ':' << user.model_.QuoteForJson(datum.second, user.model_.GetTypeByName(datum.first)) << ',';
+    }
+    ss.unget();
+    ss << '}';
+    return ss.str();
+
+//    ss << '{'
+//        << "\"name\": " << user.name << ','
+//        << "\"age\": " << user.age << ','
+//        << "\"amount\": " << user.amount
+//        << '}';
+
+    //\"photo\": " << user.model_.QuoteForJson(data["photo"], user.model_.columns_["photo"] << ", "
 }
