@@ -4,10 +4,6 @@
 #include <string>
 #include "Compress.h"
 
-Compressor::~Compressor() {
-    //do nothing
-}
-
 std::string GzipCompressor::Compress(std::string const& data) {
     std::string result;
     return result;

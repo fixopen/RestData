@@ -11,12 +11,24 @@
 class Compressor {
 public:
     Compressor() = default;
-    virtual ~Compressor();
+    virtual ~Compressor() = default;
     virtual std::string Compress(std::string const& data) = 0;
     virtual std::string Uncompress(std::string const& data) = 0;
 };
 
 class GzipCompressor : public Compressor {
+public:
+    virtual std::string Compress(std::string const& data) override;
+    virtual std::string Uncompress(std::string const& data) override;
+};
+
+class Bzip2Compressor : public Compressor {
+public:
+    virtual std::string Compress(std::string const& data) override;
+    virtual std::string Uncompress(std::string const& data) override;
+};
+
+class LzmaCompressor : public Compressor {
 public:
     virtual std::string Compress(std::string const& data) override;
     virtual std::string Uncompress(std::string const& data) override;

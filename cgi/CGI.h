@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "Session.h"
 
 struct Request {
 public:
@@ -25,6 +26,11 @@ public:
         std::string Body;
     };
     Response Response;
+    struct Environment {
+        bool isContinue = true;
+        Session *session = nullptr;
+    };
+    Environment Environment;
 };
 
 class CGI {

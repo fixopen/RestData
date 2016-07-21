@@ -8,8 +8,8 @@
 Executor::Parameters Executor::parseParameters_(std::map<std::string, std::string> const& parameters) const {
     std::vector<MetaInfo::condition> filter;
     std::vector<MetaInfo::order_by_item> orderBy;
-    long long offset = -1ll;
-    long long count = -1ll;
+    unsigned long long offset = (unsigned long long)-1ll;
+    unsigned long long count = (unsigned long long)-1ll;
     for (auto& param : parameters) {
         if (param.first == "filter") {
             //
@@ -27,7 +27,7 @@ Executor::Parameters Executor::parseParameters_(std::map<std::string, std::strin
 };
 
 Executor::MIMEType Executor::parseMIMEType_(std::string const &v) {
-    Executor::MIMEType result;
+    Executor::MIMEType result{"application", "octet-stream"};
     return result;
 }
 
