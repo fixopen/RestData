@@ -15,5 +15,4 @@ private:
     std::string value_;
 };
 
-
 #endif //RESTDATA_COLUMN_H
