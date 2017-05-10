@@ -8,33 +8,27 @@
 
 #include <string>
 
+template<typename T>
 class DataType {
 public:
-    template<typename T>
-    T const toCpp(){
-        T result;
-        return result;
-    }
+    typedef typename T native_type;
 
     std::string const toDatabase() {
         return std::string("");
     }
 
-    std::string toQueryColumn() {
-        return std::string("");
+    native_type const fromDatabase(std::string const& vp) {
+        native_type result;
+        return result;
     }
 
-    std::string toInsertValue() {
-        return std::string("");
-    }
-
-    std::string const toJson() {
-        return std::string("");
+    bool isNull() {
+        //
     }
 
     virtual ~DataType() = default;
 private:
-    //
+    native_type value;
 };
 
 
