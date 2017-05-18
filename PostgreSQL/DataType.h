@@ -5,7 +5,7 @@
 #ifndef RESTDATA_DATATYPE_H
 #define RESTDATA_DATATYPE_H
 
-
+#include <fmt/format.h>
 #include <string>
 
 template<typename T>
@@ -14,7 +14,9 @@ public:
     typedef typename T native_type;
 
     std::string const toDatabase() {
-        return std::string("");
+        return fmt::format("{}", value);
+        //--or--
+        //return "NULL"
     }
 
     native_type const fromDatabase(std::string const& vp) {
@@ -23,13 +25,36 @@ public:
     }
 
     bool isNull() {
-        //
+        return true;
     }
 
-    virtual ~DataType() = default;
+    ~DataType() = default;
 private:
     native_type value;
 };
 
+template<>
+class DataType<std::string> {
+public:
+    typedef typename std::string native_type;
+
+    std::string const toDatabase() {
+        return fmt::format("'{}'", value);
+        //--or--
+        //return "NULL"
+    }
+
+    native_type const fromDatabase(std::string const& vp) {
+        return vp;
+    }
+
+    bool isNull() {
+        return true;
+    }
+
+    ~DataType() = default;
+private:
+    native_type value;
+};
 
 #endif //RESTDATA_DATATYPE_H
