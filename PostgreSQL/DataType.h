@@ -11,7 +11,7 @@
 template<typename T>
 class DataType {
 public:
-    typedef typename T native_type;
+    using native_type = T;
 
     std::string const toDatabase() {
         return fmt::format("{}", value);
@@ -36,7 +36,7 @@ private:
 template<>
 class DataType<std::string> {
 public:
-    typedef typename std::string native_type;
+    typedef std::string native_type;
 
     std::string const toDatabase() {
         return fmt::format("'{}'", value);

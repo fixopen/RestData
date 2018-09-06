@@ -1,4 +1,11 @@
 .idea/
-CMakeLists.txt
 cmake-build-debug/
 build/
+.settings/
+CMakeLists.txt
+.autotools
+.cproject
+.project
+RestData.srctrlbm
+RestData.srctrldb
+RestData.srctrlprj

@@ -12,7 +12,7 @@
 template<typename T>
 class Column {
 public:
-    typedef typename T native_type;
+    using native_type = T;
 
     Column(std::string const& type, std::string const& name)
     : name_(name)
