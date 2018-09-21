@@ -10,7 +10,7 @@ std::unique_ptr<Process> Process::Create(std::wstring const& command) {
     //return std::make_unique(result);
 }
 
-Process::Process(std::wstring const& command) : executableFile(command) {}
+Process::Process(std::wstring const& command) : executableFile_(command), processInfo_(nullptr) {}
 
 void Process::Start() {
     //WinExec("上海市中小学数字教材\\上海中小学数字教材.exe", SW_SHOWNORMAL);

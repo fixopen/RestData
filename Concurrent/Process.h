@@ -17,8 +17,8 @@ public:
     void Start();
     void Stop();
 private:
-    std::wstring const& executableFile;
-    PROCESS_INFORMATION ProcessInfo;
+    std::wstring const& executableFile_;
+    PROCESS_INFORMATION processInfo_;
 };
 
 

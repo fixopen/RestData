@@ -71,6 +71,8 @@ protected:
 template<typename T>
 class Model {
 public:
+	virtual ~Model() = 0;
+
     static void BindDatabase(sqlite3* database) {
         model_.database_ = database;
     }
@@ -109,6 +111,10 @@ protected:
     unsigned long long int id_ = 0;
     static MetaInfo model_;
 };
+
+template<typename T>
+virtual inline Model<T>::~Model() {
+}
 
 template<typename T> MetaInfo Model<T>::model_;
 

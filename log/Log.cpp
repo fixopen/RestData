@@ -24,7 +24,7 @@ namespace Util {
                 strftime(time, 32, "%04d-%02d-%02d %02d:%02d:%02d", timeStructure);
                 //sprintf(time, "%04d-%02d-%02d %02d:%02d:%02d", currentTime.wYear, currentTime.wMonth, currentTime.wDay, currentTime.wHour, currentTime.wMinute, currentTime.wSecond);
                 std::string content = "\r\n" + std::string(time) + " " + type + ": " + mainContent + "\r\n";
-                fwrite(content.c_str(), 1, content.length(), logFile);
+                fwrite(content.c_str(), 1ul, content.length(), logFile);
                 fclose(logFile);
                 result = true;
             }

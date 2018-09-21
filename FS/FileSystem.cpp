@@ -24,7 +24,6 @@
 //	return result;
 //}
 
-
 //BOOL HDR_CreatePath(CString path){
 //	TCHAR*  p = path.GetBuffer();
 //	BOOL ret = FALSE;
@@ -56,7 +55,7 @@
 //	path.ReleaseBuffer();
 //	return ret;
 //}
-//
+
 ////目录是否存在的检查
 //BOOL HDR_FolderExist(CString strPath)
 //{
@@ -71,14 +70,14 @@
 //	FindClose(hFind);
 //	return rValue;
 //}
-//
+
 ////文件存在性检查
 //BOOL HDR_FileExist(CString strFileName)
 //{
 //	CFileFind fFind;
 //	return fFind.FindFile(strFileName);
 //}
-//
+
 ////创建目录
 //BOOL HDR_CreateFolder(CString strPath)
 //{
@@ -93,7 +92,7 @@
 //	//上面定义的属性可以省略。 直接return ::CreateDirectory( path, NULL); 即可
 //	return ::CreateDirectory(strPath, &attrib);
 //}
-//
+
 ////取消路径最后的分隔符，如果存在
 //CString HDR_RemoveFileSep(CString strPath){
 //	if ('\\' == strPath.GetAt(strPath.GetLength())){
@@ -102,7 +101,7 @@
 //		return strPath;
 //	}
 //}
-//
+
 ////取得路径的最后一项的名称，可能是文件名（如果包含文件名）
 ////可能是文件夹名字（如果不包含文件名）
 //CString HDR_GetPathLastItem(CString strPath){
@@ -122,7 +121,7 @@
 //	strPath.ReleaseBuffer();
 //	return 	strPath.Mid(index+1,len-index);
 //}
-//
+
 ////调用Windows Shell打开一个文件
 //HINSTANCE HDR_WindowShellOpen(HWND handle,CString fileName,CString *paramLine,CString *workDir)
 //{
@@ -140,7 +139,7 @@
 //	}
 //	return ShellExecute(handle,_T("open"),fileName,param,work_dir,SW_SHOWNORMAL);
 //}
-//
+
 //long HDR_GetFileSize(CString fileName)
 //{
 //	BOOL                        fOk;
@@ -155,17 +154,17 @@
 ////	assert(0 == fileInfo.nFileSizeHigh);
 //	return (long)fileInfo.nFileSizeLow;
 //}
-//
+
 //CString HDR_GetDateString(){
 //	CTime tm=CTime::GetCurrentTime();
 //	return tm.Format("%Y-%m-%d");
 //}
-//
+
 //CString HDR_GetDateTimeString(){
 //	CTime tm=CTime::GetCurrentTime();
 //	return tm.Format("%Y-%m-%d %H:%M:%S");
 //}
-//
+
 ////confim:是否提示覆盖
 //BOOL HDR_CopyFolder(CString dirFrom,CString dirTo, BOOL confim)
 //{
@@ -188,7 +187,7 @@
 //	}else{
 //		FileOp.fFlags =FOF_NOCONFIRMMKDIR|FOF_NOCONFIRMATION ; //FOF_NOCONFIRMATION 默认覆盖，不设置则出现是否覆盖提示,FOF_NOCONFIRMMKDIR,不出现创建文件夹对话框
 //	}
-//
+
 //	FileOp.hNameMappings = NULL;
 //	FileOp.hwnd = NULL;
 //	FileOp.lpszProgressTitle = NULL;
@@ -204,7 +203,7 @@
 //	}*/
 //	return ret == 0;
 //}
-//
+
 //bool HDR_DeleteFile(TCHAR* lpszPath)
 //{
 //	SHFILEOPSTRUCT FileOp={0};
