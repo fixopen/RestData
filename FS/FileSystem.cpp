@@ -43,7 +43,7 @@
 //		index++;
 //	}
 //
-//	//如果最后不是\\，则上述方法会漏调最后一个文件夹，故补充之
+//	//如果最后不是\\，则上述方法会漏掉最后一个文件夹，故补充之
 //	if ('\\' != p[len]){
 //		if (!HDR_CreateFolder(path)){
 //			goto CREATE_PATH_RETURN;
