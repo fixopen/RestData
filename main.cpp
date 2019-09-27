@@ -64,16 +64,10 @@ private:
     HANDLE hChangeMap = 0;
     std::map<DWORD, HANDLE> Threads;
     DWORD wi = INFINITE;
-
     RWMUTEX(const RWMUTEX &) = delete;
-
     RWMUTEX(RWMUTEX &&) = delete;
-
     RWMUTEX const &operator=(const RWMUTEX &) = delete;
-
-
 public:
-
     RWMUTEX(bool D = false) {
         if (D) {
             wi = 10000;
