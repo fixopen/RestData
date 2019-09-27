@@ -53,7 +53,7 @@ struct A {
     }
 };
 
-typedef void* HANDLE;
+typedef void *HANDLE;
 typedef unsigned int DWORD;
 #define INFINITE (-1)
 #define TRUE 1
@@ -69,47 +69,52 @@ private:
 
     RWMUTEX(RWMUTEX &&) = delete;
 
-    operator=(const RWMUTEX &) = delete;
+    RWMUTEX const &operator=(const RWMUTEX &) = delete;
 
 
 public:
 
     RWMUTEX(bool D = false) {
-        if (D)
+        if (D) {
             wi = 10000;
-        else
+        } else {
             wi = INFINITE;
+        }
         hChangeMap = CreateMutex(0, 0, 0);
     }
 
     ~RWMUTEX() {
         CloseHandle(hChangeMap);
         hChangeMap = 0;
-        for (auto &a : Threads)
+        for (auto &a : Threads) {
             CloseHandle(a.second);
+        }
         Threads.clear();
     }
 
     HANDLE CreateIf(bool KeepReaderLocked = false) {
         auto tim = WaitForSingleObject(hChangeMap, INFINITE);
-        if (tim == WAIT_TIMEOUT && wi != INFINITE)
+        if (tim == WAIT_TIMEOUT && wi != INFINITE) {
             OutputDebugString(L"LockRead debug timeout!");
+        }
         DWORD id = GetCurrentThreadId();
         if (Threads[id] == 0) {
             HANDLE e0 = CreateMutex(0, 0, 0);
             Threads[id] = e0;
         }
         HANDLE e = Threads[id];
-        if (!KeepReaderLocked)
+        if (!KeepReaderLocked) {
             ReleaseMutex(hChangeMap);
+        }
         return e;
     }
 
     HANDLE LockRead() {
         auto z = CreateIf();
         auto tim = WaitForSingleObject(z, wi);
-        if (tim == WAIT_TIMEOUT && wi != INFINITE)
+        if (tim == WAIT_TIMEOUT && wi != INFINITE) {
             OutputDebugString(L"LockRead debug timeout!");
+        }
         return z;
     }
 
@@ -124,12 +129,14 @@ public:
         }
 
         auto tim = WaitForMultipleObjects((DWORD) AllThreads.size(), AllThreads.data(), TRUE, wi);
-        if (tim == WAIT_TIMEOUT && wi != INFINITE)
+        if (tim == WAIT_TIMEOUT && wi != INFINITE) {
             OutputDebugString(L"LockWrite debug timeout!");
+        }
 
         // We don't want to keep threads, the hChangeMap is enough
-        for (auto &a : Threads)
+        for (auto &a : Threads) {
             ReleaseMutex(a.second);
+        }
 
         // Reader is locked
     }
@@ -155,17 +162,19 @@ private:
         int me;
     public:
         proxy(T *const _p, RWMUTEX *_m, int _me) : p(_p), m(_m), me(_me) {
-            if (me == 2)
+            if (me == 2) {
                 m->LockWrite();
-            else
+            } else {
                 m->LockRead();
+            }
         }
 
         ~proxy() {
-            if (me == 2)
+            if (me == 2) {
                 m->ReleaseWrite();
-            else
+            } else {
                 m->ReleaseRead();
+            }
         }
 
         T *operator->() {
@@ -215,6 +224,24 @@ public:
         return r();
     }
 };
+
+typedef size_t dim_t;
+typedef size_t rank_t;
+const size_t r = 10;
+const size_t dims[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+template<typename... I>
+dim_t offset(I... args) {
+    static_assert(sizeof...(I) == r, "invalid number of indexes");
+
+    // TODO: expand the expression
+    const std::array<dim_t, r> offs{static_cast<dim_t>(args)...};
+    dim_t off = 0;
+    for (rank_t i = 0; i < r; ++i) {
+        off = off * dims[i] + offs[i];
+    }
+    return off;
+}
 
 int main() {
     // cout << sum(3, 5) << sum(4, 7, 8) << endl;
