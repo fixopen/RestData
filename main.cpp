@@ -11,18 +11,6 @@ using namespace std;
 //    return 0 + ... + args;
 //}
 
-void fillColor(ImageData const& image, Point const& p, Color c, std::function<bool(ImageData const& image, Point const p)> isBounds) {
-    if (!isBounds(image, p)) {
-        auto leftPoint = Point(p.x - 1, p.y);
-        fillColor(image, leftPoint, c, isBounds);
-        auto topPoint = Point(p.x, p.y - 1);
-        fillColor(image, topPoint, c, isBounds);
-        auto rightPoint = Point(p.x + 1, p.y);
-        fillColor(image, rightPoint, c, isBounds);
-        auto bottomPoint = Point(p.x, p.y + 1);
-        fillColor(image, bottomPoint, c, isBounds);
-    }
-}
 
 struct A {
     std::string name;
@@ -163,7 +151,7 @@ public:
 };
 
 template<typename T>
-class tlock {
+class lock {
 private:
     mutable T t;
     mutable RWMUTEX m;
@@ -172,12 +160,14 @@ private:
         T *const p;
         RWMUTEX *m;
         int me;
+        // append
+        HANDLE f;
     public:
         proxy(T *const _p, RWMUTEX *_m, int _me) : p(_p), m(_m), me(_me) {
             if (me == 2) {
                 m->LockWrite();
             } else {
-                m->LockRead();
+                f = m->LockRead();
             }
         }
 
@@ -185,7 +175,7 @@ private:
             if (me == 2) {
                 m->ReleaseWrite();
             } else {
-                m->ReleaseRead();
+                m->ReleaseRead(f);
             }
         }
 
@@ -197,18 +187,18 @@ private:
             return p;
         }
 
-        T *getp() {
+        T *get() {
             return p;
         }
 
-        const T *getpc() const {
+        const T *get() const {
             return p;
         }
     };
 
 public:
     template<typename ...Args>
-    tlock(Args ... args) : t(args...) {}
+    lock(Args ... args) : t(args...) {}
 
     const proxy r() const {
         return proxy(&t, &m, 1);
@@ -220,12 +210,12 @@ public:
 
     void readlock(std::function<void(const T &)> f) const {
         proxy mx(&t, &m, 1);
-        f(*mx.getp());
+        f(*mx.get());
     }
 
     void writelock(std::function<void(T &)> f) {
         proxy mx(&t, &m, 2);
-        f(*mx.getp());
+        f(*mx.get());
     }
 
     proxy operator->() {
