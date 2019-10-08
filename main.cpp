@@ -10,7 +10,19 @@ using namespace std;
 //int sum(int ...args) {
 //    return 0 + ... + args;
 //}
-
+
+// void fillColor(ImageData const& image, Point const& p, Color c, std::function<bool(ImageData const& image, Point const p)> isBounds) {
+//     if (!isBounds(image, p)) {
+//         auto leftPoint = Point(p.x - 1, p.y);
+//         fillColor(image, leftPoint, c, isBounds);
+//         auto topPoint = Point(p.x, p.y - 1);
+//         fillColor(image, topPoint, c, isBounds);
+//         auto rightPoint = Point(p.x + 1, p.y);
+//         fillColor(image, rightPoint, c, isBounds);
+//         auto bottomPoint = Point(p.x, p.y + 1);
+//         fillColor(image, bottomPoint, c, isBounds);
+//     }
+// }
 
 struct A {
     std::string name;
