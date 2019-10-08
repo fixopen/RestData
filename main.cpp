@@ -1,5 +1,7 @@
 #include <iostream>
 #include <map>
+#include <utility>
+#include <array>
 //#include "data/Model.h"
 #include "data/users.h"
 #include "log/Log.h"
@@ -29,12 +31,12 @@ struct A {
     int age;
 
     // introduced for logging purposes only
-    A() {
+    A() : age(-1) {
         std::cout << "Default ctor. ";
     }
 
     //explicit
-    A(std::string const &s, int x) : name(s), age(x) {
+    A(std::string s, int x) : name(std::move(s)), age(x) {
         std::cout << "Ctor. ";
     }
 
@@ -42,7 +44,7 @@ struct A {
         std::cout << "Copy ctor. ";
     }
 
-    A(A &&a) noexcept : name(std::move(a.name)), age(std::move(a.age)) {
+    A(A &&a) noexcept : name(std::move(a.name)), age(a.age) {
         std::cout << "Move ctor. ";
     }
 
@@ -56,7 +58,7 @@ struct A {
     A &operator=(A &&a) noexcept {
         std::cout << "Move assign. ";
         name = std::move(a.name);
-        age = std::move(a.age);
+        age = a.age;
         return *this;
     }
 
@@ -71,16 +73,16 @@ typedef unsigned int DWORD;
 #define TRUE 1
 
 // RWMUTEX
-class RWMUTEX {
+class ReadWriteMutex {
 private:
-    HANDLE hChangeMap = 0;
+    HANDLE hChangeMap = nullptr;
     std::map<DWORD, HANDLE> Threads;
     DWORD wi = INFINITE;
-    RWMUTEX(const RWMUTEX &) = delete;
-    RWMUTEX(RWMUTEX &&) = delete;
-    RWMUTEX const &operator=(const RWMUTEX &) = delete;
 public:
-    RWMUTEX(bool D = false) {
+    ReadWriteMutex(const ReadWriteMutex &) = delete;
+    ReadWriteMutex(ReadWriteMutex &&) = delete;
+    ReadWriteMutex const &operator=(const ReadWriteMutex &) = delete;
+    explicit ReadWriteMutex(bool D = false) {
         if (D) {
             wi = 10000;
         } else {
@@ -89,7 +91,7 @@ public:
         hChangeMap = CreateMutex(0, 0, 0);
     }
 
-    ~RWMUTEX() {
+    ~ReadWriteMutex() {
         CloseHandle(hChangeMap);
         hChangeMap = 0;
         for (auto &a : Threads) {
@@ -160,20 +162,20 @@ template<typename T>
 class lock {
 private:
     mutable T t;
-    mutable RWMUTEX m;
+    mutable ReadWriteMutex m;
 
     class proxy {
         T *const p;
-        RWMUTEX *m;
+        ReadWriteMutex *m;
         int me;
         // append
-        HANDLE f;
+        HANDLE f; // @@
     public:
-        proxy(T *const _p, RWMUTEX *_m, int _me) : p(_p), m(_m), me(_me) {
+        proxy(T *const _p, ReadWriteMutex *_m, int _me) : p(_p), m(_m), me(_me) {
             if (me == 2) {
                 m->LockWrite();
             } else {
-                f = m->LockRead();
+                f = m->LockRead(); // @@
             }
         }
 
@@ -181,7 +183,7 @@ private:
             if (me == 2) {
                 m->ReleaseWrite();
             } else {
-                m->ReleaseRead(f);
+                m->ReleaseRead(f); // @@
             }
         }
 
@@ -204,9 +206,9 @@ private:
 
 public:
     template<typename ...Args>
-    lock(Args ... args) : t(args...) {}
+    explicit lock(Args ... args) : t(args...) {}
 
-    const proxy r() const {
+    proxy r() const {
         return proxy(&t, &m, 1);
     }
 
@@ -228,24 +230,24 @@ public:
         return w();
     }
 
-    const proxy operator->() const {
+    proxy operator->() const {
         return r();
     }
 };
 
 typedef size_t dim_t;
 typedef size_t rank_t;
-const size_t r = 10;
+constexpr size_t g_rank = 10;
 const size_t dims[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
 template<typename... I>
 dim_t offset(I... args) {
-    static_assert(sizeof...(I) == r, "invalid number of indexes");
+    static_assert(sizeof...(I) == g_rank, "invalid number of indexes");
 
     // TODO: expand the expression
-    const std::array<dim_t, r> offs{static_cast<dim_t>(args)...};
+    const std::array<dim_t, g_rank> offs{static_cast<dim_t>(args)...};
     dim_t off = 0;
-    for (rank_t i = 0; i < r; ++i) {
+    for (rank_t i = 0; i < g_rank; ++i) {
         off = off * dims[i] + offs[i];
     }
     return off;
@@ -278,7 +280,7 @@ int main() {
     m.insert({1, A("Ann", 63)});
 
     // (4) Ctor. Move ctor. Move ctor. Dtor. Dtor. Dtor.
-    m.emplace(std::make_pair(1, A("Ann", 63))):
+    m.emplace(std::make_pair(1, A("Ann", 63)));
 
     // (5) Ctor. Move ctor. Dtor. Dtor.
     m.emplace(1, A("Ann", 63));
