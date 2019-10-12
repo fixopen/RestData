@@ -9,6 +9,11 @@
 
 using namespace std;
 
+template<typename T, std::size_t N>
+constexpr std::size_t arraySize(T (&)[N]) noexcept { // constexpr
+    return N;
+}
+
 //int sum(int ...args) {
 //    return 0 + ... + args;
 //}
