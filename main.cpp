@@ -7,6 +7,85 @@
 #include "log/Log.h"
 #include "data/TypeList.h"
 
+#include <vector>
+#include <thread>
+#include <future>
+#include <numeric>
+#include <iostream>
+#include <chrono>
+
+void accumulate(std::vector<int>::iterator first,
+                std::vector<int>::iterator last,
+                std::promise<int> accumulate_promise)
+{
+    int sum = std::accumulate(first, last, 0);
+    accumulate_promise.set_value(sum);  // Notify future
+}
+
+void do_work(std::promise<void> barrier)
+{
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    barrier.set_value();
+}
+
+int main_future()
+{
+    // Demonstrate using promise<int> to transmit a result between threads.
+    std::vector<int> numbers = { 1, 2, 3, 4, 5, 6 };
+    std::promise<int> accumulate_promise;
+    std::future<int> accumulate_future = accumulate_promise.get_future();
+    std::thread work_thread(accumulate, numbers.begin(), numbers.end(),
+                            std::move(accumulate_promise));
+
+    // future::get() will wait until the future has a valid result and retrieves it.
+    // Calling wait() before get() is not needed
+    //accumulate_future.wait();  // wait for result
+    std::cout << "result=" << accumulate_future.get() << '\n';
+    work_thread.join();  // wait for thread completion
+
+    // Demonstrate using promise<void> to signal state between threads.
+    std::promise<void> barrier;
+    std::future<void> barrier_future = barrier.get_future();
+    std::thread new_work_thread(do_work, std::move(barrier));
+    barrier_future.wait();
+    new_work_thread.join();
+    return 0;
+}
+
+#include <iostream>
+#include <map>
+#include <string>
+#include <chrono>
+#include <thread>
+#include <mutex>
+
+std::map<std::string, std::string> g_pages;
+std::mutex g_pages_mutex;
+
+void save_page(const std::string &url)
+{
+    // simulate a long page fetch
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::string result = "fake content";
+
+    std::lock_guard<std::mutex> guard(g_pages_mutex);
+    g_pages[url] = result;
+}
+
+int main_mutex()
+{
+    std::thread t1(save_page, "http://foo");
+    std::thread t2(save_page, "http://bar");
+    t1.join();
+    t2.join();
+
+    // safe to access g_pages without lock now, as the threads are joined
+    for (const auto &pair : g_pages) {
+        std::cout << pair.first << " => " << pair.second << '\n';
+    }
+    return 0;
+}
+
 using namespace std;
 
 template<typename T, std::size_t N>
@@ -258,9 +337,7 @@ dim_t offset(I... args) {
     return off;
 }
 
-int main() {
-    // cout << sum(3, 5) << sum(4, 7, 8) << endl;
-
+int main_map() {
     auto m = std::map<int, A>{};
     // Ctor. Default ctor. Move assign. Dtor. Dtor.
     m[1] = A("Ann", 63);
@@ -320,7 +397,10 @@ int main() {
     // might leak if allocation fails due to insufficient memory for an object A
     std::map<int, std::unique_ptr<A>> m2;
     m2.emplace(1, std::make_unique<A>("Ann", 63));
+    return 0;
+}
 
+int main_sqlite() {
     Util::SetWriteLog(true);
     cout << "Hello, World!" << endl;
     sqlite3 *db = nullptr;
@@ -345,5 +425,14 @@ int main() {
         // Model::DropTable();
         sqlite3_close(db);
     }
+    return 0;
+}
+
+int main() {
+    // cout << sum(3, 5) << sum(4, 7, 8) << endl;
+    main_future();
+    main_mutex();
+    main_map();
+    main_sqlite();
     return 0;
 }
