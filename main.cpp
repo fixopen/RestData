@@ -82,10 +82,7 @@ private:
     RWMUTEX(RWMUTEX &&) = delete;
 
     RWMUTEX const &operator=(const RWMUTEX &) = delete;
-
-
 public:
-
     RWMUTEX(bool D = false) {
         if (D) {
             wi = 10000;
@@ -205,7 +202,6 @@ private:
             return p;
         }
     };
-
 public:
     template<typename ...Args>
     tlock(Args ... args) : t(args...) {}
