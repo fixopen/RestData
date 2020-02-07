@@ -282,7 +282,7 @@ int main() {
     m.insert({1, A("Ann", 63)});
 
     // (4) Ctor. Move ctor. Move ctor. Dtor. Dtor. Dtor.
-    m.emplace(std::make_pair(1, A("Ann", 63))):
+    m.emplace(std::make_pair(1, A("Ann", 63)));
 
     // (5) Ctor. Move ctor. Dtor. Dtor.
     m.emplace(1, A("Ann", 63));
