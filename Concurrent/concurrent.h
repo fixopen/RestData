@@ -38,7 +38,8 @@ struct use_future_callback_t;
 
 template<typename TPromiseTraits>
 struct use_future_callback_t<TPromiseTraits> : use_future_callback_base_t<TPromiseTraits, void> {
-    using use_future_callback_base_t<TPromiseTraits, void>::use_future_callback_base_t;
+    // using use_future_callback_base_t<TPromiseTraits, void>::use_future_callback_base_t;
+    using use_future_callback_base_t<TPromiseTraits, void>::promise_;
 
     void operator()() const {
         promise_.set_value();
@@ -47,19 +48,22 @@ struct use_future_callback_t<TPromiseTraits> : use_future_callback_base_t<TPromi
 
 template<typename TPromiseTraits>
 struct use_future_callback_t<TPromiseTraits, std::exception_ptr> : use_future_callback_base_t<TPromiseTraits, void> {
-    using use_future_callback_base_t<TPromiseTraits, void>::use_future_callback_base_t;
+    // using use_future_callback_base_t<TPromiseTraits, void>::use_future_callback_base_t;
+    using use_future_callback_base_t<TPromiseTraits, void>::promise_;
 
     void operator()(std::exception_ptr exceptionPtr) const {
-        if (exceptionPtr == nullptr)
+        if (exceptionPtr == nullptr) {
             promise_.set_exception(std::forward<std::exception_ptr>(exceptionPtr));
-        else
-            promise_.set_value(std::forward<TResult>(value)); // @@
+        } else {
+            promise_.set_value();
+        }
     }
 };
 
 template<typename TPromiseTraits, typename TResult>
 struct use_future_callback_t<TPromiseTraits, TResult> : use_future_callback_base_t<TPromiseTraits, TResult> {
-    using use_future_callback_base_t<TPromiseTraits, TResult>::use_future_callback_base_t;
+    // using use_future_callback_base_t<TPromiseTraits, TResult>::use_future_callback_base_t;
+    using use_future_callback_base_t<TPromiseTraits, TResult>::promise_;
 
     template<typename TArg>
     void operator()(TArg&& arg) const {
@@ -69,39 +73,44 @@ struct use_future_callback_t<TPromiseTraits, TResult> : use_future_callback_base
 
 template<typename TPromiseTraits, typename TResult>
 struct use_future_callback_t<TPromiseTraits, std::exception_ptr, TResult> : use_future_callback_base_t<TPromiseTraits, TResult> {
-    using use_future_callback_base_t<TPromiseTraits, TResult>::use_future_callback_base_t;
+    // using use_future_callback_base_t<TPromiseTraits, TResult>::use_future_callback_base_t;
+    using use_future_callback_base_t<TPromiseTraits, TResult>::promise_;
 
     template<typename TArg>
     void operator()(std::exception_ptr exceptionPtr, TArg&& arg) const {
-        if (exceptionPtr)
+        if (exceptionPtr) {
             promise_.set_exception(std::forward<std::exception_ptr>(exceptionPtr));
-        else
+        } else {
             promise_.set_value(std::forward<TArg>(arg));
+        }
     }
 };
 
 template<typename TPromiseTraits, typename... TResult>
 struct use_future_callback_t<TPromiseTraits, TResult...> : use_future_callback_base_t<TPromiseTraits, std::tuple<TResult...>> {
-    using use_future_callback_base_t<TPromiseTraits, std::tuple<TResult...>>::use_future_callback_base_t;
+    // using use_future_callback_base_t<TPromiseTraits, std::tuple<TResult...>>::use_future_callback_base_t;
+    using use_future_callback_base_t<TPromiseTraits, std::tuple<TResult...>>::promise_;
 
     template<typename... TArg>
     void operator()(TArg&&... arg) const {
-        static_assert (sizeof...(TArg) == sizeof...(TResult), "");
+        static_assert (sizeof...(TArg) == sizeof...(TResult));
         promise_.set_value(std::make_tuple(std::forward<TArg>(arg)...));
     }
 };
 
 template<typename TPromiseTraits, typename... TResult>
 struct use_future_callback_t<TPromiseTraits, std::exception_ptr, TResult...> : use_future_callback_base_t<TPromiseTraits, std::tuple<TResult...>> {
-    using use_future_callback_base_t<TPromiseTraits, std::tuple<TResult...>>::use_future_callback_base_t;
+    // using use_future_callback_base_t<TPromiseTraits, std::tuple<TResult...>>::use_future_callback_base_t;
+    using use_future_callback_base_t<TPromiseTraits, std::tuple<TResult...>>::promise_;
 
     template<typename... TArg>
     void operator()(std::exception_ptr exceptionPtr, TArg&&... arg) const {
-        static_assert (sizeof...(TArg) == sizeof...(TResult), "");
-        if (exceptionPtr)
+        static_assert (sizeof...(TArg) == sizeof...(TResult));
+        if (exceptionPtr) {
             promise_.set_exception(std::forward<std::exception_ptr>(exceptionPtr));
-        else
+        } else {
             promise_.set_value(std::make_tuple(std::forward<TArg>(arg)...));
+        }
     }
 };
 
@@ -112,7 +121,7 @@ struct use_future_return_t {
 
     future_type future_;
 
-    use_future_return_t(future_type&& future) : future_(future) {}
+    explicit use_future_return_t(future_type&& future) : future_(future) {}
 
     future_type get() {
         return std::move(future_);

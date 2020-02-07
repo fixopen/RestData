@@ -36,13 +36,6 @@ auto muldiv_async(T1&& v1, T2&& v2, TCallback&& token) {
     return std::move(std::get<1>(adapter)).get();
 }
 
-//演示如何通过回调模型，扩展到支持future模式，调用链模式，以及协程。
-//
-//在其他线程里，将ValueT的输入值value，转化为std::string。然后调用callback(std::string &&)。
-//
-//具体做法是，并不直接保存callback进行回调，
-//而是通过respone_callback_traits_t<>来获取真正的回调，以及本函数的返回值。
-//本演示函数的CallableT是支持型如void(std::string)函数类型的可调用类型。
 template<typename TValue, typename TCallable>
 auto tostring_async(TValue&& value, TCallable&& callback)
 /*-> typename modern_callback_adapter_t<std::decay_t<TCallable>, std::string>::return_type*/ {
@@ -50,7 +43,7 @@ auto tostring_async(TValue&& value, TCallable&& callback)
     using result_type = std::string;
     using adapter_type = modern_callback_adapter_t<callable_type, result_type>;
 
-    auto adapter = typename adapter_type::traits(std::forward<TCallable>(callback));
+    auto adapter = adapter_type::traits(std::forward<callable_type>(callback));
 
     std::thread([callback = std::move(std::get<0>(adapter)), value = std::forward<TValue>(value)]{
         using namespace std::literals;
@@ -71,6 +64,6 @@ void resumable_main_modern_callback() {
     //std::this_thread::sleep_for(1s);
     //std::cout << "......" << std::endl;
 
-    std::future<std::string> f = tostring_async(5, std_future);
+    std::future<std::string> f = tostring_async(5, use_future_callback_t<std_future_t, std::string>());
     std::cout << f.get() << std::endl;
 }
