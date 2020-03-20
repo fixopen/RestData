@@ -13,25 +13,24 @@
 #include <numeric>
 #include <iostream>
 #include <chrono>
+#include <mutex>
+#include <atomic>
 
 void accumulate(std::vector<int>::iterator first,
                 std::vector<int>::iterator last,
-                std::promise<int> accumulate_promise)
-{
+                std::promise<int> accumulate_promise) {
     int sum = std::accumulate(first, last, 0);
     accumulate_promise.set_value(sum);  // Notify future
 }
 
-void do_work(std::promise<void> barrier)
-{
+void do_work(std::promise<void> barrier) {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     barrier.set_value();
 }
 
-int main_future()
-{
+int main_future() {
     // Demonstrate using promise<int> to transmit a result between threads.
-    std::vector<int> numbers = { 1, 2, 3, 4, 5, 6 };
+    std::vector<int> numbers = {1, 2, 3, 4, 5, 6};
     std::promise<int> accumulate_promise;
     std::future<int> accumulate_future = accumulate_promise.get_future();
     std::thread work_thread(accumulate, numbers.begin(), numbers.end(),
@@ -62,8 +61,7 @@ int main_future()
 std::map<std::string, std::string> g_pages;
 std::mutex g_pages_mutex;
 
-void save_page(const std::string &url)
-{
+void save_page(const std::string &url) {
     // simulate a long page fetch
     std::this_thread::sleep_for(std::chrono::seconds(2));
     std::string result = "fake content";
@@ -72,8 +70,7 @@ void save_page(const std::string &url)
     g_pages[url] = result;
 }
 
-int main_mutex()
-{
+int main_mutex() {
     std::thread t1(save_page, "http://foo");
     std::thread t2(save_page, "http://bar");
     t1.join();
@@ -164,8 +161,11 @@ private:
     DWORD wi = INFINITE;
 public:
     ReadWriteMutex(const ReadWriteMutex &) = delete;
+
     ReadWriteMutex(ReadWriteMutex &&) = delete;
+
     ReadWriteMutex const &operator=(const ReadWriteMutex &) = delete;
+
     explicit ReadWriteMutex(bool D = false) {
         if (D) {
             wi = 10000;
@@ -428,8 +428,38 @@ int main_sqlite() {
     return 0;
 }
 
+class ThreadInfo;
+
+std::vector<ThreadInfo> g_thread_info;
+std::mutex print_m;
+
+class ThreadInfo {
+public:
+    int begin_, end_;
+    std::thread thread_;
+
+    ThreadInfo(int begin, int end) : begin_(begin), end_(end) {
+        thread_ = std::thread(&ThreadInfo::HandleRange, this); // the field hold the this, when ThreadInfo moved, this invalidation
+    }
+public:
+    void HandleRange() {
+        std::lock_guard<std::mutex> lk(print_m);
+        std::cout << " " << begin_ << " " << end_ << std::endl;
+    }
+};
+
+int main_thread() {
+    // g_thread_info.reserve(10);
+    for (int i = 0; i < 20; i += 5) {
+        g_thread_info.emplace_back(i, i + 5);
+    }
+    getchar();
+    return 0;
+}
+
 int main() {
     // cout << sum(3, 5) << sum(4, 7, 8) << endl;
+    main_thread();
     main_future();
     main_mutex();
     main_map();
