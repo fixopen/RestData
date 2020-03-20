@@ -159,6 +159,14 @@ private:
     HANDLE hChangeMap = nullptr;
     std::map<DWORD, HANDLE> Threads;
     DWORD wi = INFINITE;
+
+    RWMUTEX(const RWMUTEX &) = delete;
+
+    RWMUTEX(RWMUTEX &&) = delete;
+
+    RWMUTEX const &operator=(const RWMUTEX &) = delete;
+public:
+    RWMUTEX(bool D = false) {
 public:
     ReadWriteMutex(const ReadWriteMutex &) = delete;
 
@@ -287,7 +295,6 @@ private:
             return p;
         }
     };
-
 public:
     template<typename ...Args>
     explicit lock(Args ... args) : t(args...) {}
