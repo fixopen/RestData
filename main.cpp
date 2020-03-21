@@ -143,70 +143,60 @@ struct A {
 
 typedef void *HANDLE;
 typedef unsigned int DWORD;
+#define WAIT_TIMEOUT (1)
 #define INFINITE (-1)
 #define TRUE 1
 
 // RWMUTEX
 class ReadWriteMutex {
+    ReadWriteMutex(const ReadWriteMutex &) = delete;
+    ReadWriteMutex(ReadWriteMutex &&) = delete;
+    ReadWriteMutex const &operator=(const ReadWriteMutex &) = delete;
 private:
     HANDLE hChangeMap = nullptr;
     std::map<DWORD, HANDLE> Threads;
     DWORD wi = INFINITE;
-
-    RWMUTEX(const RWMUTEX &) = delete;
-
-    RWMUTEX(RWMUTEX &&) = delete;
-
-    RWMUTEX const &operator=(const RWMUTEX &) = delete;
 public:
-    RWMUTEX(bool D = false) {
-public:
-    ReadWriteMutex(const ReadWriteMutex &) = delete;
-
-    ReadWriteMutex(ReadWriteMutex &&) = delete;
-
-    ReadWriteMutex const &operator=(const ReadWriteMutex &) = delete;
-
     explicit ReadWriteMutex(bool D = false) {
         if (D) {
             wi = 10000;
         } else {
             wi = INFINITE;
         }
-        hChangeMap = CreateMutex(0, 0, 0);
+        hChangeMap = nullptr; // CreateMutex(0, 0, 0);
     }
 
     ~ReadWriteMutex() {
-        CloseHandle(hChangeMap);
+        // CloseHandle(hChangeMap);
         hChangeMap = 0;
         for (auto &a : Threads) {
-            CloseHandle(a.second);
+            // CloseHandle(a.second);
         }
         Threads.clear();
     }
 
     HANDLE CreateIf(bool KeepReaderLocked = false) {
-        auto tim = WaitForSingleObject(hChangeMap, INFINITE);
+        auto tim = 0; // WaitForSingleObject(hChangeMap, INFINITE);
         if (tim == WAIT_TIMEOUT && wi != INFINITE) {
-            OutputDebugString(L"LockRead debug timeout!");
+            // OutputDebugString(L"LockRead debug timeout!");
         }
-        DWORD id = GetCurrentThreadId();
+        DWORD id = 0; // GetCurrentThreadId();
         if (Threads[id] == 0) {
-            HANDLE e0 = CreateMutex(0, 0, 0);
+            HANDLE e0 = nullptr; // CreateMutex(0, 0, 0);
             Threads[id] = e0;
         }
         HANDLE e = Threads[id];
         if (!KeepReaderLocked) {
-            ReleaseMutex(hChangeMap);
+            // ReleaseMutex(hChangeMap);
         }
         return e;
     }
 
     HANDLE LockRead() {
         auto z = CreateIf();
-        auto tim = WaitForSingleObject(z, wi);
+        auto tim = 0; // WaitForSingleObject(z, wi);
         if (tim == WAIT_TIMEOUT && wi != INFINITE) {
-            OutputDebugString(L"LockRead debug timeout!");
+            // OutputDebugString(L"LockRead debug timeout!");
         }
         return z;
     }
@@ -221,25 +211,25 @@ public:
             AllThreads.push_back(a.second);
         }
 
-        auto tim = WaitForMultipleObjects((DWORD) AllThreads.size(), AllThreads.data(), TRUE, wi);
+        auto tim = 0; // WaitForMultipleObjects((DWORD) AllThreads.size(), AllThreads.data(), TRUE, wi);
         if (tim == WAIT_TIMEOUT && wi != INFINITE) {
-            OutputDebugString(L"LockWrite debug timeout!");
+            // OutputDebugString(L"LockWrite debug timeout!");
         }
 
         // We don't want to keep threads, the hChangeMap is enough
         for (auto &a : Threads) {
-            ReleaseMutex(a.second);
+            // ReleaseMutex(a.second);
         }
 
         // Reader is locked
     }
 
     void ReleaseWrite() {
-        ReleaseMutex(hChangeMap);
+        // ReleaseMutex(hChangeMap);
     }
 
     void ReleaseRead(HANDLE f) {
-        ReleaseMutex(f);
+        // ReleaseMutex(f);
     }
 };
 
@@ -321,7 +311,7 @@ public:
 
 typedef size_t dim_t;
 typedef size_t rank_t;
-constexpr size_t g_rank = 10;
+static constexpr size_t g_rank = 10;
 const size_t dims[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
 template<typename... I>
