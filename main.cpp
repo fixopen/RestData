@@ -1,18 +1,18 @@
-#include <iostream>
-#include <map>
-#include <utility>
-#include <array>
 //#include "data/Model.h"
 #include "data/users.h"
 #include "log/Log.h"
 #include "data/TypeList.h"
 
+#include <iostream>
+#include <array>
 #include <vector>
+#include <map>
+#include <string>
+#include <numeric>
+#include <chrono>
+#include <utility>
 #include <thread>
 #include <future>
-#include <numeric>
-#include <iostream>
-#include <chrono>
 #include <mutex>
 #include <atomic>
 
@@ -50,13 +50,6 @@ int main_future() {
     new_work_thread.join();
     return 0;
 }
-
-#include <iostream>
-#include <map>
-#include <string>
-#include <chrono>
-#include <thread>
-#include <mutex>
 
 std::map<std::string, std::string> g_pages;
 std::mutex g_pages_mutex;
