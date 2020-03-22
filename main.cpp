@@ -1,11 +1,80 @@
-#include <iostream>
-#include <map>
-#include <utility>
-#include <array>
 //#include "data/Model.h"
 #include "data/users.h"
 #include "log/Log.h"
 #include "data/TypeList.h"
+
+#include <iostream>
+#include <array>
+#include <vector>
+#include <map>
+#include <string>
+#include <numeric>
+#include <chrono>
+#include <utility>
+#include <thread>
+#include <future>
+#include <mutex>
+#include <atomic>
+
+void accumulate(std::vector<int>::iterator first,
+                std::vector<int>::iterator last,
+                std::promise<int> accumulate_promise) {
+    int sum = std::accumulate(first, last, 0);
+    accumulate_promise.set_value(sum);  // Notify future
+}
+
+void do_work(std::promise<void> barrier) {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    barrier.set_value();
+}
+
+int main_future() {
+    // Demonstrate using promise<int> to transmit a result between threads.
+    std::vector<int> numbers = {1, 2, 3, 4, 5, 6};
+    std::promise<int> accumulate_promise;
+    std::future<int> accumulate_future = accumulate_promise.get_future();
+    std::thread work_thread(accumulate, numbers.begin(), numbers.end(),
+                            std::move(accumulate_promise));
+
+    // future::get() will wait until the future has a valid result and retrieves it.
+    // Calling wait() before get() is not needed
+    //accumulate_future.wait();  // wait for result
+    std::cout << "result=" << accumulate_future.get() << '\n';
+    work_thread.join();  // wait for thread completion
+
+    // Demonstrate using promise<void> to signal state between threads.
+    std::promise<void> barrier;
+    std::future<void> barrier_future = barrier.get_future();
+    std::thread new_work_thread(do_work, std::move(barrier));
+    barrier_future.wait();
+    new_work_thread.join();
+    return 0;
+}
+
+std::map<std::string, std::string> g_pages;
+std::mutex g_pages_mutex;
+
+void save_page(const std::string &url) {
+    // simulate a long page fetch
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::string result = "fake content";
+
+    std::lock_guard<std::mutex> guard(g_pages_mutex);
+    g_pages[url] = result;
+}
+
+int main_mutex() {
+    std::thread t1(save_page, "http://foo");
+    std::thread t2(save_page, "http://bar");
+    t1.join();
+    t2.join();
+
+    // safe to access g_pages without lock now, as the threads are joined
+    for (const auto &pair : g_pages) {
+        std::cout << pair.first << " => " << pair.second << '\n';
+    }
+    return 0;
+}
 
 using namespace std;
 
@@ -74,59 +143,60 @@ struct A {
 
 typedef void *HANDLE;
 typedef unsigned int DWORD;
+#define WAIT_TIMEOUT (1)
 #define INFINITE (-1)
 #define TRUE 1
 
 // RWMUTEX
 class ReadWriteMutex {
+    ReadWriteMutex(const ReadWriteMutex &) = delete;
+    ReadWriteMutex(ReadWriteMutex &&) = delete;
+    ReadWriteMutex const &operator=(const ReadWriteMutex &) = delete;
 private:
     HANDLE hChangeMap = nullptr;
     std::map<DWORD, HANDLE> Threads;
     DWORD wi = INFINITE;
 public:
-    ReadWriteMutex(const ReadWriteMutex &) = delete;
-    ReadWriteMutex(ReadWriteMutex &&) = delete;
-    ReadWriteMutex const &operator=(const ReadWriteMutex &) = delete;
     explicit ReadWriteMutex(bool D = false) {
         if (D) {
             wi = 10000;
         } else {
             wi = INFINITE;
         }
-        hChangeMap = CreateMutex(0, 0, 0);
+        hChangeMap = nullptr; // CreateMutex(0, 0, 0);
     }
 
     ~ReadWriteMutex() {
-        CloseHandle(hChangeMap);
+        // CloseHandle(hChangeMap);
         hChangeMap = 0;
         for (auto &a : Threads) {
-            CloseHandle(a.second);
+            // CloseHandle(a.second);
         }
         Threads.clear();
     }
 
     HANDLE CreateIf(bool KeepReaderLocked = false) {
-        auto tim = WaitForSingleObject(hChangeMap, INFINITE);
+        auto tim = 0; // WaitForSingleObject(hChangeMap, INFINITE);
         if (tim == WAIT_TIMEOUT && wi != INFINITE) {
-            OutputDebugString(L"LockRead debug timeout!");
+            // OutputDebugString(L"LockRead debug timeout!");
         }
-        DWORD id = GetCurrentThreadId();
+        DWORD id = 0; // GetCurrentThreadId();
         if (Threads[id] == 0) {
-            HANDLE e0 = CreateMutex(0, 0, 0);
+            HANDLE e0 = nullptr; // CreateMutex(0, 0, 0);
             Threads[id] = e0;
         }
         HANDLE e = Threads[id];
         if (!KeepReaderLocked) {
-            ReleaseMutex(hChangeMap);
+            // ReleaseMutex(hChangeMap);
         }
         return e;
     }
 
     HANDLE LockRead() {
         auto z = CreateIf();
-        auto tim = WaitForSingleObject(z, wi);
+        auto tim = 0; // WaitForSingleObject(z, wi);
         if (tim == WAIT_TIMEOUT && wi != INFINITE) {
-            OutputDebugString(L"LockRead debug timeout!");
+            // OutputDebugString(L"LockRead debug timeout!");
         }
         return z;
     }
@@ -141,25 +211,25 @@ public:
             AllThreads.push_back(a.second);
         }
 
-        auto tim = WaitForMultipleObjects((DWORD) AllThreads.size(), AllThreads.data(), TRUE, wi);
+        auto tim = 0; // WaitForMultipleObjects((DWORD) AllThreads.size(), AllThreads.data(), TRUE, wi);
         if (tim == WAIT_TIMEOUT && wi != INFINITE) {
-            OutputDebugString(L"LockWrite debug timeout!");
+            // OutputDebugString(L"LockWrite debug timeout!");
         }
 
         // We don't want to keep threads, the hChangeMap is enough
         for (auto &a : Threads) {
-            ReleaseMutex(a.second);
+            // ReleaseMutex(a.second);
         }
 
         // Reader is locked
     }
 
     void ReleaseWrite() {
-        ReleaseMutex(hChangeMap);
+        // ReleaseMutex(hChangeMap);
     }
 
     void ReleaseRead(HANDLE f) {
-        ReleaseMutex(f);
+        // ReleaseMutex(f);
     }
 };
 
@@ -208,7 +278,6 @@ private:
             return p;
         }
     };
-
 public:
     template<typename ...Args>
     explicit lock(Args ... args) : t(args...) {}
@@ -242,7 +311,7 @@ public:
 
 typedef size_t dim_t;
 typedef size_t rank_t;
-constexpr size_t g_rank = 10;
+static constexpr size_t g_rank = 10;
 const size_t dims[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
 template<typename... I>
@@ -258,9 +327,7 @@ dim_t offset(I... args) {
     return off;
 }
 
-int main() {
-    // cout << sum(3, 5) << sum(4, 7, 8) << endl;
-
+int main_map() {
     auto m = std::map<int, A>{};
     // Ctor. Default ctor. Move assign. Dtor. Dtor.
     m[1] = A("Ann", 63);
@@ -320,7 +387,10 @@ int main() {
     // might leak if allocation fails due to insufficient memory for an object A
     std::map<int, std::unique_ptr<A>> m2;
     m2.emplace(1, std::make_unique<A>("Ann", 63));
+    return 0;
+}
 
+int main_sqlite() {
     Util::SetWriteLog(true);
     cout << "Hello, World!" << endl;
     sqlite3 *db = nullptr;
@@ -345,5 +415,44 @@ int main() {
         // Model::DropTable();
         sqlite3_close(db);
     }
+    return 0;
+}
+
+class ThreadInfo;
+
+std::vector<ThreadInfo> g_thread_info;
+std::mutex print_m;
+
+class ThreadInfo {
+public:
+    int begin_, end_;
+    std::thread thread_;
+
+    ThreadInfo(int begin, int end) : begin_(begin), end_(end) {
+        thread_ = std::thread(&ThreadInfo::HandleRange, this); // the field hold the this, when ThreadInfo moved, this invalidation
+    }
+public:
+    void HandleRange() {
+        std::lock_guard<std::mutex> lk(print_m);
+        std::cout << " " << begin_ << " " << end_ << std::endl;
+    }
+};
+
+int main_thread() {
+    // g_thread_info.reserve(10);
+    for (int i = 0; i < 20; i += 5) {
+        g_thread_info.emplace_back(i, i + 5);
+    }
+    getchar();
+    return 0;
+}
+
+int main() {
+    // cout << sum(3, 5) << sum(4, 7, 8) << endl;
+    main_thread();
+    main_future();
+    main_mutex();
+    main_map();
+    main_sqlite();
     return 0;
 }
