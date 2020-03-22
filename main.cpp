@@ -10,7 +10,7 @@
 using namespace std;
 
 template<typename T, std::size_t N>
-constexpr std::size_t arraySize(T (&)[N]) noexcept { // constexpr
+constexpr std::size_t arraySize(T (&)[N]) noexcept {
     return N;
 }
 
