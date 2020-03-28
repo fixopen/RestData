@@ -4,6 +4,6 @@
 cmake_minimum_required (VERSION 3.8)
 
 # Add source to this project's executable.
-add_executable (PostgreSQL "Column.cpp" "Column.h" "DataType.cpp" "DataType.h" "Table.cpp" "Table.h")
+add_library (PostgreSQL "Column.cpp" "Column.h" "DataType.cpp" "DataType.h" "Table.cpp" "Table.h")
 
 # TODO: Add tests and install targets if needed.

@@ -18,3 +18,5 @@ add_subdirectory ("PostgreSQL")
 add_subdirectory ("sqlite")
 add_subdirectory ("text")
 add_subdirectory ("yajl")
+
+add_executable (RestData "main.cpp")
