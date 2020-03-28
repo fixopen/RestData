@@ -16,29 +16,32 @@
 #include <mutex>
 #include <atomic>
 
-#include <objbase.h>
-#include <msxml6.h>
-#import <msxml3.dll> raw_interfaces_only
-using namespace MSXML2;
+#include <wtypes.h>
+
+//#include <objbase.h>
+//#include <msxml6.h>
+//#import <msxml6.dll> raw_interfaces_only
+//using namespace MSXML2;
 
 // new COM
-class HRESULT {
-public:
-private:
-    uint32_t state_;
-};
+//class HRESULT {
+//public:
+//private:
+//    uint32_t state_;
+//};
 
-class GUID {
-private:
-    uint8_t value_[16];
-};
+//class GUID {
+//private:
+//    uint8_t value_[16];
+//};
 
-using IID = GUID;
-using CLASSID = GUID;
+//using IID = GUID;
+//using CLASSID = GUID;
 
 template <typename T>
 class SmartPtr {
 public:
+    T* operator->();
 };
 
 class Interface {
@@ -51,13 +54,13 @@ using InterfacePtr = SmartPtr<Interface>;
 
 class Unknown : public virtual Interface {
 public:
-    virtual HRESULT queryInterface(IID const& interfaceId, InterfacePtr& interfacePtr) noexcept;
-    virtual ~Unknown() noexcept;
+    virtual HRESULT queryInterface(IID const& interfaceId, InterfacePtr& interfacePtr) noexcept {}
+    virtual ~Unknown() noexcept {}
 };
 
 class Factory {
 public:
-    SmartPtr<Unknown> create(CLASSID const& classId) noexcept;
+    //SmartPtr<Unknown> create(CLSID const& classId) noexcept;
 };
 
 template <typename... TInterfaces>
@@ -220,11 +223,11 @@ struct A {
     }
 };
 
-typedef void *HANDLE;
-typedef unsigned int DWORD;
-#define WAIT_TIMEOUT (1)
-#define INFINITE (-1)
-#define TRUE 1
+//typedef void *HANDLE;
+//typedef unsigned int DWORD;
+//#define WAIT_TIMEOUT (1)
+//#define INFINITE (-1)
+//#define TRUE 1
 
 // RWMUTEX
 class ReadWriteMutex {
@@ -532,8 +535,8 @@ int main_thread() {
     return 0;
 }
 
-using LONG = long;
-static constexpr void* INVALID_HANDLE_VALUE = nullptr;
+//using LONG = long;
+//static constexpr void* INVALID_HANDLE_VALUE = nullptr;
 
 // implement filestream that derives from IStream, used by XmlLite
 class FileStream : public IStream {
@@ -664,27 +667,27 @@ private:
 };
 
 int main_xml() {
-    System::Xml::XmlTextReader *reader = new System::Xml::XmlTextReader("books.xml");
-    while (reader->Read()) {
-        // Do some work here on the data.
-        Console::WriteLine(reader->Name);
-        switch (reader->NodeType) {
-            case XmlNodeType::Element: // The node is an element.
-                Console::Write("<{0}", reader->Name);
-                while (reader->MoveToNextAttribute()) // Read the attributes.
-                    Console::Write(" {0}='{1}'", reader->Name, reader->Value);
-                Console::WriteLine(">");
-                Console::WriteLine(">");
-                break;
-            case XmlNodeType::Text: //Display the text in each element.
-                Console::WriteLine(reader->Value);
-                break;
-            case XmlNodeType::EndElement: //Display the end of the element.
-                Console::Write("</{0}", reader->Name);
-                Console::WriteLine(">");
-                break;
-        }
-    }
+    //System::Xml::XmlTextReader *reader = new System::Xml::XmlTextReader("books.xml");
+    //while (reader->Read()) {
+    //    // Do some work here on the data.
+    //    Console::WriteLine(reader->Name);
+    //    switch (reader->NodeType) {
+    //        case XmlNodeType::Element: // The node is an element.
+    //            Console::Write("<{0}", reader->Name);
+    //            while (reader->MoveToNextAttribute()) // Read the attributes.
+    //                Console::Write(" {0}='{1}'", reader->Name, reader->Value);
+    //            Console::WriteLine(">");
+    //            Console::WriteLine(">");
+    //            break;
+    //        case XmlNodeType::Text: //Display the text in each element.
+    //            Console::WriteLine(reader->Value);
+    //            break;
+    //        case XmlNodeType::EndElement: //Display the end of the element.
+    //            Console::Write("</{0}", reader->Name);
+    //            Console::WriteLine(">");
+    //            break;
+    //    }
+    //}
 }
 
 int main() {
