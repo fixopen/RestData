@@ -16,6 +16,85 @@
 #include <mutex>
 #include <atomic>
 
+#include <objbase.h>
+#include <msxml6.h>
+#import <msxml3.dll> raw_interfaces_only
+using namespace MSXML2;
+
+// new COM
+class HRESULT {
+public:
+private:
+    uint32_t state_;
+};
+
+class GUID {
+private:
+    uint8_t value_[16];
+};
+
+using IID = GUID;
+using CLASSID = GUID;
+
+template <typename T>
+class SmartPtr {
+public:
+};
+
+class Interface {
+public:
+    virtual void release() noexcept;
+    virtual ~Interface() noexcept;
+};
+
+using InterfacePtr = SmartPtr<Interface>;
+
+class Unknown : public virtual Interface {
+public:
+    virtual HRESULT queryInterface(IID const& interfaceId, InterfacePtr& interfacePtr) noexcept;
+    virtual ~Unknown() noexcept;
+};
+
+class Factory {
+public:
+    SmartPtr<Unknown> create(CLASSID const& classId) noexcept;
+};
+
+template <typename... TInterfaces>
+class BizTem : public virtual Interface, public Unknown, public TInterfaces... {
+public:
+    void release() noexcept final {
+        //
+    }
+    HRESULT queryInterface(IID const& interfaceId, InterfacePtr& interfacePtr) noexcept final {
+        //
+    }
+    HRESULT bizProc(...) final;
+};
+
+class Biz : public virtual Interface {
+public:
+    virtual HRESULT bizProc(...);
+};
+
+class BizClass : public Biz, public Unknown {
+public:
+    void release() noexcept final;
+    HRESULT queryInterface(IID const& interfaceId, InterfacePtr& interfacePtr) noexcept final;
+    HRESULT bizProc(...) final;
+};
+
+// new MFC or OWL or wxWidgets or QT or ATL or WTL or Vaca or nana or genericGui or FLTK -- based type erase & coroutine &
+// new Archive or protobuf or Cap'n or Arrow or BER or TLV or JSON or SQL -- based static reflection
+
+enum Raw {
+    x
+};
+
+enum class CR {
+    y
+};
+
 void accumulate(std::vector<int>::iterator first,
                 std::vector<int>::iterator last,
                 std::promise<int> accumulate_promise) {
@@ -150,8 +229,11 @@ typedef unsigned int DWORD;
 // RWMUTEX
 class ReadWriteMutex {
     ReadWriteMutex(const ReadWriteMutex &) = delete;
+
     ReadWriteMutex(ReadWriteMutex &&) = delete;
+
     ReadWriteMutex const &operator=(const ReadWriteMutex &) = delete;
+
 private:
     HANDLE hChangeMap = nullptr;
     std::map<DWORD, HANDLE> Threads;
@@ -278,6 +360,7 @@ private:
             return p;
         }
     };
+
 public:
     template<typename ...Args>
     explicit lock(Args ... args) : t(args...) {}
@@ -429,8 +512,10 @@ public:
     std::thread thread_;
 
     ThreadInfo(int begin, int end) : begin_(begin), end_(end) {
-        thread_ = std::thread(&ThreadInfo::HandleRange, this); // the field hold the this, when ThreadInfo moved, this invalidation
+        thread_ = std::thread(&ThreadInfo::HandleRange,
+                              this); // the field hold the this, when ThreadInfo moved, this invalidation
     }
+
 public:
     void HandleRange() {
         std::lock_guard<std::mutex> lk(print_m);
@@ -445,6 +530,161 @@ int main_thread() {
     }
     getchar();
     return 0;
+}
+
+using LONG = long;
+static constexpr void* INVALID_HANDLE_VALUE = nullptr;
+
+// implement filestream that derives from IStream, used by XmlLite
+class FileStream : public IStream {
+    FileStream(HANDLE hFile) {
+        _refcount = 1;
+        _hFile = hFile;
+    }
+
+    ~FileStream() {
+        if (_hFile != INVALID_HANDLE_VALUE) {
+            ::CloseHandle(_hFile);
+        }
+    }
+
+public:
+    HRESULT static OpenFile(LPCWSTR pName, IStream **ppStream, bool fWrite) {
+        HANDLE hFile = ::CreateFileW(pName, fWrite ? GENERIC_WRITE : GENERIC_READ, FILE_SHARE_READ,
+                                     NULL, fWrite ? CREATE_ALWAYS : OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+        if (hFile == INVALID_HANDLE_VALUE)
+            return HRESULT_FROM_WIN32(GetLastError());
+
+        *ppStream = new FileStream(hFile);
+
+        if (*ppStream == NULL)
+            CloseHandle(hFile);
+
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void **ppvObject) {
+        if (iid == __uuidof(IUnknown)
+            || iid == __uuidof(IStream)
+            || iid == __uuidof(ISequentialStream)) {
+            *ppvObject = static_cast<IStream *>(this);
+            AddRef();
+            return S_OK;
+        } else
+            return E_NOINTERFACE;
+    }
+
+    virtual ULONG STDMETHODCALLTYPE AddRef(void) {
+        return (ULONG) InterlockedIncrement(&_refcount);
+    }
+
+    virtual ULONG STDMETHODCALLTYPE Release(void) {
+        ULONG res = (ULONG) InterlockedDecrement(&_refcount);
+        if (res == 0)
+            delete this;
+        return res;
+    }
+
+    // ISequentialStream Interface
+public:
+    virtual HRESULT STDMETHODCALLTYPE Read(void *pv, ULONG cb, ULONG *pcbRead) {
+        BOOL rc = ReadFile(_hFile, pv, cb, pcbRead, NULL);
+        return (rc) ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Write(void const *pv, ULONG cb, ULONG *pcbWritten) {
+        BOOL rc = WriteFile(_hFile, pv, cb, pcbWritten, NULL);
+        return rc ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+    }
+
+    // IStream Interface
+public:
+    virtual HRESULT STDMETHODCALLTYPE SetSize(ULARGE_INTEGER) {
+        return E_NOTIMPL;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE CopyTo(IStream*, ULARGE_INTEGER, ULARGE_INTEGER*, ULARGE_INTEGER*) {
+        return E_NOTIMPL;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Commit(DWORD) {
+        return E_NOTIMPL;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Revert(void) {
+        return E_NOTIMPL;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE LockRegion(ULARGE_INTEGER, ULARGE_INTEGER, DWORD) {
+        return E_NOTIMPL;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE UnlockRegion(ULARGE_INTEGER, ULARGE_INTEGER, DWORD) {
+        return E_NOTIMPL;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Clone(IStream**) {
+        return E_NOTIMPL;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Seek(LARGE_INTEGER liDistanceToMove, DWORD dwOrigin, ULARGE_INTEGER* lpNewFilePointer) {
+        DWORD dwMoveMethod;
+
+        switch (dwOrigin) {
+            case STREAM_SEEK_SET:
+                dwMoveMethod = FILE_BEGIN;
+                break;
+            case STREAM_SEEK_CUR:
+                dwMoveMethod = FILE_CURRENT;
+                break;
+            case STREAM_SEEK_END:
+                dwMoveMethod = FILE_END;
+                break;
+            default:
+                return STG_E_INVALIDFUNCTION;
+                break;
+        }
+
+        if (SetFilePointerEx(_hFile, liDistanceToMove, (PLARGE_INTEGER) lpNewFilePointer,
+                             dwMoveMethod) == 0)
+            return HRESULT_FROM_WIN32(GetLastError());
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Stat(STATSTG* pStatstg, DWORD grfStatFlag) {
+        if (GetFileSizeEx(_hFile, (PLARGE_INTEGER) & pStatstg->cbSize) == 0)
+            return HRESULT_FROM_WIN32(GetLastError());
+        return S_OK;
+    }
+
+private:
+    HANDLE _hFile;
+    LONG _refcount;
+};
+
+int main_xml() {
+    System::Xml::XmlTextReader *reader = new System::Xml::XmlTextReader("books.xml");
+    while (reader->Read()) {
+        // Do some work here on the data.
+        Console::WriteLine(reader->Name);
+        switch (reader->NodeType) {
+            case XmlNodeType::Element: // The node is an element.
+                Console::Write("<{0}", reader->Name);
+                while (reader->MoveToNextAttribute()) // Read the attributes.
+                    Console::Write(" {0}='{1}'", reader->Name, reader->Value);
+                Console::WriteLine(">");
+                Console::WriteLine(">");
+                break;
+            case XmlNodeType::Text: //Display the text in each element.
+                Console::WriteLine(reader->Value);
+                break;
+            case XmlNodeType::EndElement: //Display the end of the element.
+                Console::Write("</{0}", reader->Name);
+                Console::WriteLine(">");
+                break;
+        }
+    }
 }
 
 int main() {
