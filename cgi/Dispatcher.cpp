@@ -8,8 +8,8 @@
 Executor::Parameters Executor::parseParameters_(std::map<std::string, std::string> const& parameters) const {
     std::vector<MetaInfo::condition> filter;
     std::vector<MetaInfo::order_by_item> orderBy;
-    unsigned long long offset = (unsigned long long)-1ll;
-    unsigned long long count = (unsigned long long)-1ll;
+    auto offset = (unsigned long long)-1ll;
+    auto count = (unsigned long long)-1ll;
     for (auto& param : parameters) {
         if (param.first == "filter") {
             //
@@ -34,7 +34,7 @@ Executor::MIMEType Executor::parseMIMEType_(std::string const &v) {
 std::vector<std::pair<std::regex, std::shared_ptr<Executor>>> Dispatcher::handles_;
 
 void Dispatcher::RegisterExecutor(std::string const& uriPatterns, std::shared_ptr<Executor> const& executor) {
-    handles_.push_back(std::make_pair(std::regex(uriPatterns), executor));
+    handles_.emplace_back(std::regex(uriPatterns), executor);
 }
 
 void Dispatcher::Execute(Request& request) {
