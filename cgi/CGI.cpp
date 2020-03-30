@@ -21,7 +21,8 @@ void CGI::GetEnv() {
     fServerProtocol = std::getenv("SERVER_PROTOCOL");
 
     std::string port = std::getenv("SERVER_PORT");
-    fServerPort = (unsigned short) std::atol(port.c_str());
+    char* end = nullptr;
+    fServerPort = (unsigned short) std::strtol(port.c_str(), &end, 10);
 
     fRequestMethod = std::getenv("REQUEST_METHOD");
     fPathInfo = std::getenv("PATH_INFO");
@@ -36,7 +37,7 @@ void CGI::GetEnv() {
     fContentType = std::getenv("CONTENT_TYPE");
 
     std::string length = std::getenv("CONTENT_LENGTH");
-    fContentLength = (unsigned long) std::atol(length.c_str());
+    fContentLength = (unsigned long) std::strtol(length.c_str(), &end, 10);
 
     fAccept = std::getenv("HTTP_ACCEPT");
     fUserAgent = std::getenv("HTTP_USER_AGENT");

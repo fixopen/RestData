@@ -87,16 +87,10 @@ public:
     HRESULT bizProc(...) final;
 };
 
-// new MFC or OWL or wxWidgets or QT or ATL or WTL or Vaca or nana or genericGui or FLTK -- based type erase & coroutine &
-// new Archive or protobuf or Cap'n or Arrow or BER or TLV or JSON or SQL -- based static reflection
-
-enum Raw {
-    x
-};
-
-enum class CR {
-    y
-};
+// new MFC or OWL or wxWidgets or QT or ATL or WTL or Vaca or nana or genericGui or FLTK
+// -- based type erase & coroutine & actor & event dispatcher & channel & executor
+// new Archive or protobuf or Cap'n or Arrow or BER or TLV or JSON or SQL
+// -- based static reflection
 
 void accumulate(std::vector<int>::iterator first,
                 std::vector<int>::iterator last,
