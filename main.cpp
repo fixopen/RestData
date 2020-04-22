@@ -15,6 +15,7 @@
 #include <future>
 #include <mutex>
 #include <atomic>
+#include <cstdio>
 
 void accumulate(std::vector<int>::iterator first,
                 std::vector<int>::iterator last,
@@ -443,7 +444,7 @@ int main_thread() {
     for (int i = 0; i < 20; i += 5) {
         g_thread_info.emplace_back(i, i + 5);
     }
-    getchar();
+    std::getchar();
     return 0;
 }
 
