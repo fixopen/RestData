@@ -17,7 +17,7 @@
 #include <atomic>
 #include <cstdio>
 
-#include <wtypes.h>
+//#include <wtypes.h>
 
 //#include <objbase.h>
 //#include <msxml6.h>
