@@ -5,7 +5,6 @@
 #ifndef RESTDATA_COMPRESS_H
 #define RESTDATA_COMPRESS_H
 
-
 #include <iosfwd>
 
 class Compressor {
@@ -18,20 +17,20 @@ public:
 
 class GzipCompressor : public Compressor {
 public:
-    virtual std::string Compress(std::string const& data) override;
-    virtual std::string Uncompress(std::string const& data) override;
+    std::string Compress(std::string const& data) override;
+    std::string Uncompress(std::string const& data) override;
 };
 
 class Bzip2Compressor : public Compressor {
 public:
-    virtual std::string Compress(std::string const& data) override;
-    virtual std::string Uncompress(std::string const& data) override;
+    std::string Compress(std::string const& data) override;
+    std::string Uncompress(std::string const& data) override;
 };
 
 class LzmaCompressor : public Compressor {
 public:
-    virtual std::string Compress(std::string const& data) override;
-    virtual std::string Uncompress(std::string const& data) override;
+    std::string Compress(std::string const& data) override;
+    std::string Uncompress(std::string const& data) override;
 };
 
 #endif //RESTDATA_COMPRESS_H

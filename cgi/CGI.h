@@ -17,14 +17,19 @@ public:
     std::map<std::string, std::string> Parameters;
     std::map<std::string, std::vector<std::string>> Headers;
     std::string Body;
+
     std::map<std::string, std::string> GetCookie();
+
     struct Response {
         int StatusCode;
         std::string StatusText;
         std::map<std::string, std::vector<std::string>> Headers;
-        void SetCookie(std::map<std::string, std::string> const& cookie);
+
+        void SetCookie(std::map<std::string, std::string> const &cookie);
+
         std::string Body;
     };
+
     Response Response;
     struct Environment {
         bool isContinue = true;
@@ -35,7 +40,6 @@ public:
 
 class CGI {
 /*
-
     Server specific variables:
         SERVER_SOFTWARE: name/version of HTTP server.
         SERVER_NAME: host name of the server, may be dot-decimal IP address.
@@ -87,6 +91,5 @@ public:
     char *fAcceptLanguageString;
     bool fUsingHTTPS;
 };
-
 
 #endif //RESTDATA_CGI_H

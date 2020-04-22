@@ -5,6 +5,7 @@
 #ifndef RESTDATA_DATATYPE_H
 #define RESTDATA_DATATYPE_H
 
+#include <format>
 #include <fmt/format.h>
 #include <string>
 

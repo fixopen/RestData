@@ -17,6 +17,82 @@
 #include <atomic>
 #include <cstdio>
 
+#include <wtypes.h>
+
+//#include <objbase.h>
+//#include <msxml6.h>
+//#import <msxml6.dll> raw_interfaces_only
+//using namespace MSXML2;
+
+// new COM
+//class HRESULT {
+//public:
+//private:
+//    uint32_t state_;
+//};
+
+//class GUID {
+//private:
+//    uint8_t value_[16];
+//};
+
+//using IID = GUID;
+//using CLASSID = GUID;
+
+template <typename T>
+class SmartPtr {
+public:
+    T* operator->();
+};
+
+class Interface {
+public:
+    virtual void release() noexcept;
+    virtual ~Interface() noexcept;
+};
+
+using InterfacePtr = SmartPtr<Interface>;
+
+class Unknown : public virtual Interface {
+public:
+    virtual HRESULT queryInterface(IID const& interfaceId, InterfacePtr& interfacePtr) noexcept {}
+    virtual ~Unknown() noexcept {}
+};
+
+class Factory {
+public:
+    //SmartPtr<Unknown> create(CLSID const& classId) noexcept;
+};
+
+template <typename... TInterfaces>
+class BizTem : public virtual Interface, public Unknown, public TInterfaces... {
+public:
+    void release() noexcept final {
+        //
+    }
+    HRESULT queryInterface(IID const& interfaceId, InterfacePtr& interfacePtr) noexcept final {
+        //
+    }
+    HRESULT bizProc(...) final;
+};
+
+class Biz : public virtual Interface {
+public:
+    virtual HRESULT bizProc(...);
+};
+
+class BizClass : public Biz, public Unknown {
+public:
+    void release() noexcept final;
+    HRESULT queryInterface(IID const& interfaceId, InterfacePtr& interfacePtr) noexcept final;
+    HRESULT bizProc(...) final;
+};
+
+// new MFC or OWL or wxWidgets or QT or ATL or WTL or Vaca or nana or genericGui or FLTK
+// -- based type erase & coroutine & actor & event dispatcher & channel & executor
+// new Archive or protobuf or Cap'n or Arrow or BER or TLV or JSON or SQL
+// -- based static reflection
+
 void accumulate(std::vector<int>::iterator first,
                 std::vector<int>::iterator last,
                 std::promise<int> accumulate_promise) {
@@ -80,7 +156,7 @@ int main_mutex() {
 using namespace std;
 
 template<typename T, std::size_t N>
-constexpr std::size_t arraySize(T (&)[N]) noexcept { // constexpr
+constexpr std::size_t arraySize(T (&)[N]) noexcept {
     return N;
 }
 
@@ -142,173 +218,11 @@ struct A {
     }
 };
 
-typedef void *HANDLE;
-typedef unsigned int DWORD;
-#define WAIT_TIMEOUT (1)
-#define INFINITE (-1)
-#define TRUE 1
-
-// RWMUTEX
-class ReadWriteMutex {
-    ReadWriteMutex(const ReadWriteMutex &) = delete;
-    ReadWriteMutex(ReadWriteMutex &&) = delete;
-    ReadWriteMutex const &operator=(const ReadWriteMutex &) = delete;
-private:
-    HANDLE hChangeMap = nullptr;
-    std::map<DWORD, HANDLE> Threads;
-    DWORD wi = INFINITE;
-public:
-    explicit ReadWriteMutex(bool D = false) {
-        if (D) {
-            wi = 10000;
-        } else {
-            wi = INFINITE;
-        }
-        hChangeMap = nullptr; // CreateMutex(0, 0, 0);
-    }
-
-    ~ReadWriteMutex() {
-        // CloseHandle(hChangeMap);
-        hChangeMap = 0;
-        for (auto &a : Threads) {
-            // CloseHandle(a.second);
-        }
-        Threads.clear();
-    }
-
-    HANDLE CreateIf(bool KeepReaderLocked = false) {
-        auto tim = 0; // WaitForSingleObject(hChangeMap, INFINITE);
-        if (tim == WAIT_TIMEOUT && wi != INFINITE) {
-            // OutputDebugString(L"LockRead debug timeout!");
-        }
-        DWORD id = 0; // GetCurrentThreadId();
-        if (Threads[id] == 0) {
-            HANDLE e0 = nullptr; // CreateMutex(0, 0, 0);
-            Threads[id] = e0;
-        }
-        HANDLE e = Threads[id];
-        if (!KeepReaderLocked) {
-            // ReleaseMutex(hChangeMap);
-        }
-        return e;
-    }
-
-    HANDLE LockRead() {
-        auto z = CreateIf();
-        auto tim = 0; // WaitForSingleObject(z, wi);
-        if (tim == WAIT_TIMEOUT && wi != INFINITE) {
-            // OutputDebugString(L"LockRead debug timeout!");
-        }
-        return z;
-    }
-
-    void LockWrite() {
-        CreateIf(true);
-
-        // Wait for all
-        vector<HANDLE> AllThreads;
-        AllThreads.reserve(Threads.size());
-        for (auto &a : Threads) {
-            AllThreads.push_back(a.second);
-        }
-
-        auto tim = 0; // WaitForMultipleObjects((DWORD) AllThreads.size(), AllThreads.data(), TRUE, wi);
-        if (tim == WAIT_TIMEOUT && wi != INFINITE) {
-            // OutputDebugString(L"LockWrite debug timeout!");
-        }
-
-        // We don't want to keep threads, the hChangeMap is enough
-        for (auto &a : Threads) {
-            // ReleaseMutex(a.second);
-        }
-
-        // Reader is locked
-    }
-
-    void ReleaseWrite() {
-        // ReleaseMutex(hChangeMap);
-    }
-
-    void ReleaseRead(HANDLE f) {
-        // ReleaseMutex(f);
-    }
-};
-
-template<typename T>
-class lock {
-private:
-    mutable T t;
-    mutable ReadWriteMutex m;
-
-    class proxy {
-        T *const p;
-        ReadWriteMutex *m;
-        int me;
-        // append
-        HANDLE f; // @@
-    public:
-        proxy(T *const _p, ReadWriteMutex *_m, int _me) : p(_p), m(_m), me(_me) {
-            if (me == 2) {
-                m->LockWrite();
-            } else {
-                f = m->LockRead(); // @@
-            }
-        }
-
-        ~proxy() {
-            if (me == 2) {
-                m->ReleaseWrite();
-            } else {
-                m->ReleaseRead(f); // @@
-            }
-        }
-
-        T *operator->() {
-            return p;
-        }
-
-        const T *operator->() const {
-            return p;
-        }
-
-        T *get() {
-            return p;
-        }
-
-        const T *get() const {
-            return p;
-        }
-    };
-public:
-    template<typename ...Args>
-    explicit lock(Args ... args) : t(args...) {}
-
-    proxy r() const {
-        return proxy(&t, &m, 1);
-    }
-
-    proxy w() {
-        return proxy(&t, &m, 2);
-    }
-
-    void readlock(std::function<void(const T &)> f) const {
-        proxy mx(&t, &m, 1);
-        f(*mx.get());
-    }
-
-    void writelock(std::function<void(T &)> f) {
-        proxy mx(&t, &m, 2);
-        f(*mx.get());
-    }
-
-    proxy operator->() {
-        return w();
-    }
-
-    proxy operator->() const {
-        return r();
-    }
-};
+//typedef void *HANDLE;
+//typedef unsigned int DWORD;
+//#define WAIT_TIMEOUT (1)
+//#define INFINITE (-1)
+//#define TRUE 1
 
 typedef size_t dim_t;
 typedef size_t rank_t;
@@ -430,8 +344,10 @@ public:
     std::thread thread_;
 
     ThreadInfo(int begin, int end) : begin_(begin), end_(end) {
-        thread_ = std::thread(&ThreadInfo::HandleRange, this); // the field hold the this, when ThreadInfo moved, this invalidation
+        thread_ = std::thread(&ThreadInfo::HandleRange,
+                              this); // the field hold the this, when ThreadInfo moved, this invalidation
     }
+
 public:
     void HandleRange() {
         std::lock_guard<std::mutex> lk(print_m);
@@ -447,6 +363,9 @@ int main_thread() {
     std::getchar();
     return 0;
 }
+
+//using LONG = long;
+//static constexpr void* INVALID_HANDLE_VALUE = nullptr;
 
 int main() {
     // cout << sum(3, 5) << sum(4, 7, 8) << endl;

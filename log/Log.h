@@ -6,8 +6,8 @@
 #include <string> //for std::wstring, std::string
 
 namespace Util {
-    void SetWriteLog(bool const flag);
-    bool const WriteLog(std::wstring const& filePath, std::string const& mainContent, std::string const& type);
+    void SetWriteLog(bool flag);
+    bool WriteLog(std::wstring const& filePath, std::string const& mainContent, std::string const& type);
 }
 
 #endif //__UTIL_LOG_H__

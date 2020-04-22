@@ -1,63 +1,63 @@
-cmake_minimum_required(VERSION 3.1)
-project(RestData)
+#cmake_minimum_required(VERSION 3.1)
+#project(RestData)
 
 #include_directories(~/app/fmt)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
-set(SOURCE_FILES
-        sqlite/sqlite3.h
-        sqlite/sqlite3ext.h
-        sqlite/sqlite3.c
-        yajl/yajl_version.c
-        yajl/yajl_alloc.h
-        yajl/yajl_alloc.c
-        yajl/yajl_buf.h
-        yajl/yajl_buf.c
-        yajl/yajl_bytestack.h
-        yajl/yajl_encode.h
-        yajl/yajl_encode.c
-        yajl/yajl_gen.c
-        yajl/yajl_lex.h
-        yajl/yajl_lex.c
-        yajl/yajl_parser.h
-        yajl/yajl_parser.c
-        yajl/yajl_tree.c
-        yajl/yajl.c
-        CSV/CSV.h
-        CSV/CSV.cpp
-        log/Log.h
-        log/Log.cpp
-        text/StringOp.h
-        text/StringOp.cpp
-        Concurrent/Process.h
-        Concurrent/Process.cpp
-        cgi/CGI.h
-        cgi/CGI.cpp
-        cgi/Dispatcher.h
-        cgi/Dispatcher.cpp
-        cgi/Session.cpp
-        cgi/Session.h
-        compress/Compress.h
-        compress/Compress.cpp
-        data/Model.h
-        data/Model.cpp
-        data/users.h
-        data/users.cpp
-        data/TypeList.cpp
-        data/TypeList.h
-        PostgreSQL/DataType.cpp
-        PostgreSQL/DataType.h
-        PostgreSQL/Column.cpp
-        PostgreSQL/Column.h
-        PostgreSQL/Table.cpp
-        PostgreSQL/Table.h
-        FS/FileSystem.cpp
-        FS/FileSystem.h
-        media/Meta.cpp
-        media/Meta.h
-        main.cpp)
-add_executable(RestData ${SOURCE_FILES})
+#set(SOURCE_FILES
+#        sqlite/sqlite3.h
+#        sqlite/sqlite3ext.h
+#        sqlite/sqlite3.c
+#        yajl/yajl_version.c
+#        yajl/yajl_alloc.h
+#        yajl/yajl_alloc.c
+#        yajl/yajl_buf.h
+#        yajl/yajl_buf.c
+#        yajl/yajl_bytestack.h
+#        yajl/yajl_encode.h
+#        yajl/yajl_encode.c
+#        yajl/yajl_gen.c
+#        yajl/yajl_lex.h
+#        yajl/yajl_lex.c
+#        yajl/yajl_parser.h
+#        yajl/yajl_parser.c
+#        yajl/yajl_tree.c
+#        yajl/yajl.c
+#        CSV/CSV.h
+#        CSV/CSV.cpp
+#        log/Log.h
+#        log/Log.cpp
+#        text/StringOp.h
+#        text/StringOp.cpp
+#        Concurrent/Process.h
+#        Concurrent/Process.cpp
+#        cgi/CGI.h
+#        cgi/CGI.cpp
+#        cgi/Dispatcher.h
+#        cgi/Dispatcher.cpp
+#        cgi/Session.cpp
+#        cgi/Session.h
+#        compress/Compress.h
+#        compress/Compress.cpp
+#        data/Model.h
+#        data/Model.cpp
+#        data/users.h
+#        data/users.cpp
+#        data/TypeList.cpp
+#        data/TypeList.h
+#        PostgreSQL/DataType.cpp
+#        PostgreSQL/DataType.h
+#        PostgreSQL/Column.cpp
+#        PostgreSQL/Column.h
+#        PostgreSQL/Table.cpp
+#        PostgreSQL/Table.h
+#        FS/FileSystem.cpp
+#        FS/FileSystem.h
+#        media/Meta.cpp
+#        media/Meta.h
+#        main.cpp)
+#add_executable(RestData ${SOURCE_FILES})
 
 #include_directories(${CMAKE_SOURCE_DIR}/inc)
 #link_directories(${CMAKE_SOURCE_DIR}/lib)
@@ -74,3 +74,31 @@ add_executable(RestData ${SOURCE_FILES})
 #set(FOO_SRCS "foo.cpp")
 #add_executable(foo ${FOO_SRCS})
 #target_link_libraries(foo bar) # also adds the required include path
+
+# CMakeList.txt : Top-level CMake project file, do global configuration
+# and include sub-projects here.
+#
+cmake_minimum_required (VERSION 3.8)
+
+project ("RestData")
+
+include_directories(folly)
+
+#target_compile_features(RestData PUBLIC cxx_std_17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17") #  /std:c++17
+
+# Include sub-projects.
+add_subdirectory ("cgi")
+add_subdirectory ("compress")
+add_subdirectory ("Concurrent")
+add_subdirectory ("CSV")
+add_subdirectory ("data")
+add_subdirectory ("FS")
+add_subdirectory ("log")
+add_subdirectory ("media")
+add_subdirectory ("PostgreSQL")
+add_subdirectory ("sqlite")
+add_subdirectory ("text")
+add_subdirectory ("yajl")
+
+add_executable (RestData "main.cpp")

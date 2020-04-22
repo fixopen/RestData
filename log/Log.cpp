@@ -7,11 +7,11 @@
 namespace Util {
     bool isWriteLog = true;
 
-    void SetWriteLog(bool const flag) {
+    void SetWriteLog(bool flag) {
         isWriteLog = flag;
     }
 
-    bool const WriteLog(std::wstring const& filePath, std::string const& mainContent, std::string const& type) {
+    bool WriteLog(std::wstring const& filePath, std::string const& mainContent, std::string const& type) {
         auto result = false;
 
         if (isWriteLog) {

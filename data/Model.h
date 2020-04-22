@@ -113,7 +113,7 @@ protected:
 };
 
 template<typename T>
-virtual inline Model<T>::~Model() {
+inline Model<T>::~Model() {
 }
 
 template<typename T> MetaInfo Model<T>::model_;

@@ -85,3 +85,13 @@ INSTALL(TARGETS yajl_s ARCHIVE DESTINATION lib${LIB_SUFFIX})
 INSTALL(FILES ${PUB_HDRS} DESTINATION include/yajl)
 INSTALL(FILES ${incDir}/yajl_version.h DESTINATION include/yajl)
 INSTALL(FILES ${shareDir}/yajl.pc DESTINATION share/pkgconfig)
+
+# CMakeList.txt : CMake project for gui, include source and define
+# project specific logic here.
+#
+cmake_minimum_required (VERSION 3.8)
+
+# Add source to this project's executable.
+add_executable (yajl "yajl.c" "yajl_parser.h")
+
+# TODO: Add tests and install targets if needed.

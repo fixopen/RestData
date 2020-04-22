@@ -4,71 +4,58 @@
 #include <string>
 #include <vector>
 
-namespace Util {
-    namespace Text {
-        //charset, encoding, format, layout
+namespace Util::Text::StringOp {
+    //native charset interface
+    int ToInt(std::string const &content, size_t mode = 10);
 
-        //if unicode project
-        //  std::wstring::c_str() ==> CString
-        //  static_cast<LPCTSTR>(CString) ==> std::wstring
-        //else
-        //  std::string::c_str() ==> CString
-        //  static_cast<LPCTSTR>(CString) ==> std::string
+    double ToDouble(std::string const &content);
 
-        namespace StringOp {
-            //native charset interface
-            int const ToInt(std::string const &content, size_t const mode = 10);
+    //unicode charset interface
+    std::wstring ToUpper(std::wstring const &v);
 
-            double const ToDouble(std::string const &content);
+    std::wstring ToLower(std::wstring const &v);
 
-            //unicode charset interface
-            std::wstring const ToUpper(std::wstring const &v);
+    //unicode charset interface
+    int ToInt(std::wstring const &content, size_t mode = 10);
 
-            std::wstring const ToLower(std::wstring const &v);
+    double ToDouble(std::wstring const &content);
 
-            //unicode charset interface
-            int const ToInt(std::wstring const &content, size_t const mode = 10);
+    std::wstring FromInt(int value);
 
-            double const ToDouble(std::wstring const &content);
+    std::wstring FromDouble(double dbl, size_t prec = 2);
 
-            std::wstring const FromInt(int const value);
+    std::string FromIntU(int value);
 
-            std::wstring const FromDouble(double const dbl, size_t const prec = 2);
+    std::string FromDoubleU(double dbl, size_t prec = 2);
 
-            std::string const FromIntU(int const value);
+    //string split merge and trim
+    std::vector<std::wstring> Split(std::wstring const &value, std::wstring const &delimeter);
 
-            std::string const FromDoubleU(double const dbl, size_t const prec = 2);
+    //std::vector<std::wstring> const Split(std::wstring const& value, std::vector<std::wstring> const& delimeters);
+    std::wstring Merge(std::vector<std::wstring> const &value, std::wstring const &delimeter);
 
-            //string split merge and trim
-            std::vector<std::wstring> const Split(std::wstring const &value, std::wstring const &delimeter);
+    std::vector<std::string> Split(std::string const &value, std::string const &delimeter);
 
-            //std::vector<std::wstring> const Split(std::wstring const& value, std::vector<std::wstring> const& delimeters);
-            std::wstring const Merge(std::vector<std::wstring> const &value, std::wstring const &delimeter);
+    //std::vector<std::string> const Split(std::string const& value, std::vector<std::string> const& delimeters);
+    std::string Merge(std::vector<std::string> const &value, std::string const &delimeter);
 
-            std::vector<std::string> const Split(std::string const &value, std::string const &delimeter);
+    std::wstring Trim(std::wstring const &value, std::wstring const &spaceChars = L" ");
 
-            //std::vector<std::string> const Split(std::string const& value, std::vector<std::string> const& delimeters);
-            std::string const Merge(std::vector<std::string> const &value, std::string const &delimeter);
+    std::string Trim(std::string const &value, std::string const &spaceChars = " ");
 
-            std::wstring const Trim(std::wstring const &value, std::wstring const &spaceChars = L" ");
+    std::wstring Replace(std::wstring const &value, std::wstring const &src, std::wstring const &dst);
 
-            std::string const Trim(std::string const &value, std::string const &spaceChars = " ");
+    std::string Replace(std::string const &value, std::string const &src, std::string const &dst);
 
-            std::wstring const Replace(std::wstring const &value, std::wstring const &src, std::wstring const &dst);
+    //native <=> unicode
+    std::wstring ToUnicode(std::string const &content);
 
-            std::string const Replace(std::string const &value, std::string const &src, std::string const &dst);
+    std::string FromUnicode(std::wstring const &unicode);
 
-            //native <=> unicode
-            std::wstring const ToUnicode(std::string const &content);
+    //unicode <=> utf8
+    std::string ToUTF8(std::wstring const &unicode);
 
-            std::string const FromUnicode(std::wstring const &unicode);
-
-            //unicode <=> utf8
-            std::string const ToUTF8(std::wstring const &unicode);
-
-            std::wstring const FromUTF8(std::string const &utf8);
-        }
-    }
+    std::wstring FromUTF8(std::string const &utf8);
 }
 
 #endif //__UTIL_TEXT_STRINGOP_H__

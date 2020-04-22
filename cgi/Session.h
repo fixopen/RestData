@@ -5,10 +5,7 @@
 #ifndef RESTDATA_SESSION_H
 #define RESTDATA_SESSION_H
 
-
 class Session {
-
 };
-
 
 #endif //RESTDATA_SESSION_H
