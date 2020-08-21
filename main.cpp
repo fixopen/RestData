@@ -375,3 +375,213 @@ int main() {
     main_sqlite();
     return 0;
 }
+
+template<typename... Args>
+auto add(Args&&... args)
+{
+    return (... + args);
+}
+
+/*
+ * The type must provide operator+
+ * Only same types passed to arg
+ * At least two parameter are required, such that the pack is not empty.
+ * operator+ should be noexcept
+ * and return an object of the same type
+ */
+
+// 1 First type struct which retrieves and stores the first type of a pack
+template<typename T, typename...>
+struct first_type
+{
+    using type = T;
+};
+
+// 2 Using alias for clean TMP
+template<typename... Args>
+using first_type_t = typename first_type<Args...>::type;
+
+// 3 Check whether all types are the same
+template<typename T, typename... Ts>
+inline constexpr bool are_same_v = std::conjunction_v<std::is_same<T, Ts>...>;
+
+// 4 Concept to compare a type against the first type of a parameter pack
+template<typename T, typename... Args>
+concept same_as_first_type =
+std::is_same_v<std::remove_cvref_t<T>,
+        std::remove_cvref_t<first_type_t<Args...>>>;
+
+template<typename... Args>
+requires requires(Args... args)
+{
+    (... + args);                  // 1 Simple requirement
+    requires are_same_v<Args...>;  // 2 Nested requirement with type-trait
+    requires sizeof...(Args) > 1;  // 3 Nested requirement with a boolean expression asserts at least 2 parameters
+    {
+        (... + args)
+    }
+    noexcept  // 4 Compound requirement ensuring noexcept
+    ->same_as_first_type<Args...>;  // 5 Same compound requirement ensuring same type
+}
+auto add(Args&&... args)
+{
+    return (... + args);
+}
+
+// 1 Class template mock to create the different needed properties
+template<bool NOEXCEPT, bool hasOperatorPlus, bool validReturnType>
+class ObjectMock
+{
+public:
+    ObjectMock() = default;
+
+    // 2 Operator plus with controlled noexcept can be enabled
+    ObjectMock& operator+(const ObjectMock& rhs) noexcept(NOEXCEPT) requires(
+            hasOperatorPlus&& validReturnType)
+    {
+        return *this;
+    }
+
+    // 3 Operator plus with invalid return type
+    int operator+(const ObjectMock& rhs) noexcept(NOEXCEPT) requires(
+            hasOperatorPlus && not validReturnType)
+    {
+        return 3;
+    }
+};
+
+// 4 Create the different mocks from the class template
+using NoAdd               = ObjectMock<true, false, true>;
+using ValidClass          = ObjectMock<true, true, true>;
+using NotNoexcept         = ObjectMock<false, true, true>;
+using DifferentReturnType = ObjectMock<false, true, false>;
+
+template<typename... Args>
+concept TestAdd =
+requires(Args... args) // 1 Define a variadic concept as helper
+{
+add(args...); // 2 Call add by expanding the pack
+};
+
+// 1 Assert that type has operator+
+static_assert(TestAdd<int, int, int>);
+static_assert(not TestAdd<NoAdd, NoAdd>);
+
+// 2 Assert, that no mixed types are allowed
+static_assert(not TestAdd<int, double>);
+
+// 3 Assert that pack has at least one parameter
+static_assert(not TestAdd<int>);
+
+// 4 Assert that operator+ is noexcept
+static_assert(not TestAdd<NotNoexcept, NotNoexcept>);
+
+// 5 Assert that operator+ returns the same type
+static_assert(not TestAdd<DifferentReturnType, DifferentReturnType>);
+
+// 6 Assert that a valid class works
+static_assert(TestAdd<ValidClass, ValidClass>);
+
+template<typename T, bool enable = true>
+class SampleUseEnableIfWithError
+{
+public:
+    std::enable_if_t<enable, int> DisableThisMethodOnRequest() { return 42; }
+};
+
+template<typename T, bool enable = true>
+class Sample
+{
+public:
+    int DisableThisMethodOnRequest() requires(enable) { return 42; }
+};
+
+template<typename T, bool enable = true>
+class SampleUseEnableIf
+{
+public:
+    template<typename Dummy = void>
+    std::enable_if_t<enable, int> DisableThisMethodOnRequest()
+    {
+        return 42;
+    }
+};
+
+template<typename T>
+concept YourRequirementOrConcept = true;
+
+template<typename T>
+requires YourRequirementOrConcept<T>
+void func();
+
+template<typename T>
+void func() requires YourRequirementOrConcept<T>;
+
+template<YourRequirementOrConcept T>
+void func();
+
+#include <type_traits>
+
+template<bool WithDefaultCtor>
+class ClassWithOptionalDefaultCtorUseEnableIf
+{
+public:
+    template<typename std::enable_if<WithDefaultCtor, int>::type = 0>
+    ClassWithOptionalDefaultCtorUseEnableIf() // 1  we cannot say =default here
+    {
+    }
+};
+
+template<bool WithDefaultCtor>
+class ClassWithOptionalDefaultCtor
+{
+public:
+    ClassWithOptionalDefaultCtor() requires(WithDefaultCtor) =
+    default; // 1  way better
+};
+
+int mainTest()
+{
+    ClassWithOptionalDefaultCtorUseEnableIf<true> te{};
+    ClassWithOptionalDefaultCtor<true> t{};
+}
+
+// lambdaUnevaluatedContext.cpp
+
+#include <cmath>
+#include <iostream>
+#include <memory>
+#include <set>
+#include <string>
+
+template <typename Cont>
+void printContainer(const Cont& cont) {
+    for (const auto& c: cont) std::cout << c << "  ";
+    std::cout << "\n";
+}
+
+int main2() {
+    std::cout << std::endl;
+
+    std::set<std::string> set1 = {"scott", "Bjarne", "Herb", "Dave", "michael"};
+    printContainer(set1);
+
+    using SetDecreasing = std::set<std::string, decltype([](const auto& l, const auto& r){ return l > r; })>;           // (1)
+    SetDecreasing set2 = {"scott", "Bjarne", "Herb", "Dave", "michael"};
+    printContainer(set2);     // (2)
+
+    using SetLength = std::set<std::string, decltype([](const auto& l, const auto& r){ return l.size() < r.size(); })>; // (1)
+    SetLength set3 = {"scott", "Bjarne", "Herb", "Dave", "michael"};
+    printContainer(set3);     // (2)
+
+    std::cout << std::endl;
+
+    std::set<int> set4 = {-10, 5, 3, 100, 0, -25};
+    printContainer(set4);
+
+    using setAbsolute = std::set<int, decltype([](const auto& l, const auto& r){ return  std::abs(l)< std::abs(r); })>; // (1)
+    setAbsolute set5 = {-10, 5, 3, 100, 0, -25};
+    printContainer(set5);    // (2)
+
+    std::cout << "\n\n";
+}
