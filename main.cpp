@@ -15,8 +15,9 @@
 #include <future>
 #include <mutex>
 #include <atomic>
+#include <cstdio>
 
-#include <wtypes.h>
+//#include <wtypes.h>
 
 //#include <objbase.h>
 //#include <msxml6.h>
@@ -359,7 +360,7 @@ int main_thread() {
     for (int i = 0; i < 20; i += 5) {
         g_thread_info.emplace_back(i, i + 5);
     }
-    getchar();
+    std::getchar();
     return 0;
 }
 
